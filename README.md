@@ -29,7 +29,9 @@ dropping editable copies into your repo.
 
 Skills and commands for code work. `/plugin install engineering@bluehoodie`
 
-_No engineering skills published yet._
+- [adversarial-review](./plugins/engineering/skills/adversarial-review/SKILL.md) —
+  two-agent adversarial code review: the Critic attacks the code, the Author defends it,
+  and the debate surfaces issues a single-pass review misses.
 
 ### [productivity](./plugins/productivity)
 
