@@ -1,63 +1,68 @@
 # Repository conventions
 
 This repo is a public collection of Claude Code skills and commands. It is its own
-marketplace: `.claude-plugin/marketplace.json` lists the `bluehoodie-skills` plugin,
-whose source is this repo root, plus any standalone plugins under `plugins/`.
+marketplace: `.claude-plugin/marketplace.json` lists every plugin, each one a directory
+under `plugins/`. The repo root is not itself a plugin.
 
-Default to shipping a skill inside `bluehoodie-skills`. Give something its own plugin
-only when it carries a hook — a hook at the repo root fires for everyone who installs
-`bluehoodie-skills` for something else, and background behaviour has to be opted into,
-not bundled. `plugins/dream/` is the case: its `SessionStart` hook launches detached
-sessions.
+Plugins are split by what they are *for*, so users install only what they need:
 
-A standalone plugin owns its own `.claude-plugin/plugin.json`, version, CHANGELOG, and
-README, and appears in the marketplace `plugins` array with `"source":
-"./plugins/<name>"`. Its skills and commands stay inside it — they are not listed in the
-root plugin's `skills` array or the bucket READMEs.
+- `plugins/engineering/` — code work
+- `plugins/productivity/` — non-code workflow tools
+- `plugins/dream/` — memory consolidation; separate because it carries a `SessionStart`
+  hook, and background behaviour has to be opted into
 
-## Skills
+Add a new plugin only for a genuinely new category, or for something that carries a hook
+or script users must opt into. Everything else goes in `engineering` or `productivity`.
 
-Skills live in bucket folders under `skills/`:
+## Anatomy of a plugin
 
-- `engineering/` — code work
-- `productivity/` — non-code workflow tools
-- `in-progress/` — drafts not yet ready to ship
-- `deprecated/` — no longer used
+```
+plugins/<name>/
+  .claude-plugin/plugin.json   # "skills": "./skills/", "commands": "./commands/"
+  skills/<skill>/SKILL.md
+  commands/<command>.md
+  README.md
+```
 
-`engineering/` and `productivity/` are the **promoted** buckets. Every skill in a
-promoted bucket must have:
-
-- an entry in `.claude-plugin/plugin.json`'s `skills` array (the plugin ships exactly
-  the promoted set — nested bucket folders are not auto-discovered, so the array is the
-  source of truth)
-- a line in that bucket's `README.md`, with the skill name linked to its `SKILL.md`
-- a line in the top-level `README.md`, same link
-
-Skills in `in-progress/` and `deprecated/` must appear in none of those three places.
-
-## Commands
-
-Commands live flat in `commands/`, one `.md` per command, auto-discovered by the plugin.
-Do not nest them in subfolders — a subfolder namespaces the invocation (`/bucket:name`),
-which is worse to type. Every command gets a line in the top-level `README.md`.
+Skills and commands are auto-discovered from those two directories — there is no list to
+keep in sync. Nesting is not discovered: a skill is `skills/<name>/SKILL.md`, one level
+deep, and a command is `commands/<name>.md`, flat. A subfolder under `commands/`
+namespaces the invocation (`/bucket:name`), which is worse to type.
 
 Every `.md` in `commands/` becomes a command, so don't put a `README.md` there — it would
 ship as `/README`. That's what the `.gitkeep` is for. Each command needs YAML frontmatter
 with at least a `description`.
 
+## Unshipped skills
+
+Drafts and retired skills live outside `plugins/`, so they ship to nobody:
+
+- `skills/in-progress/` — drafts not yet ready
+- `skills/deprecated/` — no longer used
+
+Being under `plugins/` is the only thing that makes a skill shipped. Promoting a draft is
+one move: `git mv skills/in-progress/<name> plugins/<plugin>/skills/<name>`.
+
+## What has to stay in sync
+
+- Every shipped skill and command has a line in its plugin's `README.md`, name linked to
+  its `SKILL.md` or `.md`.
+- Every shipped skill and command has a line in the top-level `README.md`, under its
+  plugin's heading, same link.
+- Skills in `skills/in-progress/` and `skills/deprecated/` appear in neither.
+- Empty sections say `_No skills yet._` / `_No commands yet._` rather than sitting blank.
+
 ## Releasing
 
-Bump `version` in the changed plugin's `plugin.json` — the root one for skills and
-commands, `plugins/<name>/.claude-plugin/plugin.json` for a standalone. That version is
-what Claude uses to decide when installed users see an update — a change with no bump is
-a change nobody gets.
+Bump `version` in the changed plugin's `plugins/<name>/.claude-plugin/plugin.json`. That
+version is what Claude uses to decide when installed users see an update — a change with
+no bump is a change nobody gets. Only the plugin you touched needs a bump.
 
-Run `claude plugin validate . --strict` after touching either manifest,
-`claude plugin validate plugins/<name> --strict` for a standalone plugin, and
-`claude plugin validate .claude-plugin/plugin.json --strict` to also lint the skills and
-commands themselves.
+Validate the marketplace and every plugin you changed:
 
-The latter always reports one known warning — that this `CLAUDE.md` is not loaded as
-plugin context. That is intended: it is contributor documentation for people who clone
-the repo, not context shipped to people who install the plugin. Ignore that one warning;
-treat any other as a real failure.
+```bash
+claude plugin validate . --strict                    # marketplace manifest
+claude plugin validate plugins/<name> --strict       # one plugin
+```
+
+All of these must pass clean. There are no expected warnings.

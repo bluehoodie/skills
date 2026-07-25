@@ -1,0 +1,15 @@
+{
+  "name": "engineering",
+  "description": "Colin Dickson's Claude Code skills and commands for code work.",
+  "version": "0.1.0",
+  "license": "MIT",
+  "author": {
+    "name": "Colin Dickson",
+    "url": "https://github.com/bluehoodie"
+  },
+  "homepage": "https://github.com/bluehoodie/skills/tree/main/plugins/engineering",
+  "repository": "https://github.com/bluehoodie/skills",
+  "keywords": ["skills", "commands", "engineering"],
+  "commands": "./commands/",
+  "skills": "./skills/"
+}

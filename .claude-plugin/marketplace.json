@@ -7,14 +7,24 @@
   "description": "Colin Dickson's public agent skills and commands, as installable Claude Code plugins.",
   "plugins": [
     {
-      "name": "bluehoodie-skills",
-      "source": "./",
-      "description": "Colin Dickson's agent skills and commands for Claude Code.",
+      "name": "engineering",
+      "source": "./plugins/engineering",
+      "description": "Colin Dickson's agent skills and commands for code work.",
       "category": "engineering",
       "keywords": [
         "skills",
         "commands",
-        "engineering",
+        "engineering"
+      ]
+    },
+    {
+      "name": "productivity",
+      "source": "./plugins/productivity",
+      "description": "Colin Dickson's agent skills and commands for non-code workflow.",
+      "category": "productivity",
+      "keywords": [
+        "skills",
+        "commands",
         "productivity"
       ]
     },
