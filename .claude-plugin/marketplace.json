@@ -1,0 +1,22 @@
+{
+  "name": "bluehoodie",
+  "owner": {
+    "name": "Colin Dickson",
+    "url": "https://github.com/bluehoodie"
+  },
+  "description": "Colin Dickson's public agent skills and commands, as an installable Claude Code plugin.",
+  "plugins": [
+    {
+      "name": "bluehoodie-skills",
+      "source": "./",
+      "description": "Colin Dickson's agent skills and commands for Claude Code.",
+      "category": "engineering",
+      "keywords": [
+        "skills",
+        "commands",
+        "engineering",
+        "productivity"
+      ]
+    }
+  ]
+}
