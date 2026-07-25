@@ -42,6 +42,16 @@ Non-code workflow tools.
 
 _No commands yet._
 
+## Other plugins
+
+This marketplace also ships plugins that are more than a skill — they carry hooks or
+scripts, so they install separately and only if you want them.
+
+- [dream](./plugins/dream) — periodic memory consolidation. A `SessionStart` hook watches
+  time and session gates, then runs a four-phase pass over Claude Code's auto-memory so it
+  stays relevant instead of growing forever. Install with
+  `/plugin install dream@bluehoodie`.
+
 ## Contributing
 
 Repo conventions — where skills go, what has to stay in sync — are in

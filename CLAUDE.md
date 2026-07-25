@@ -1,8 +1,19 @@
 # Repository conventions
 
-This repo is a public collection of Claude Code skills and commands, shipped as a
-single-plugin marketplace. It is its own marketplace: `.claude-plugin/marketplace.json`
-lists the one `bluehoodie-skills` plugin, whose source is this repo root.
+This repo is a public collection of Claude Code skills and commands. It is its own
+marketplace: `.claude-plugin/marketplace.json` lists the `bluehoodie-skills` plugin,
+whose source is this repo root, plus any standalone plugins under `plugins/`.
+
+Default to shipping a skill inside `bluehoodie-skills`. Give something its own plugin
+only when it carries a hook — a hook at the repo root fires for everyone who installs
+`bluehoodie-skills` for something else, and background behaviour has to be opted into,
+not bundled. `plugins/dream/` is the case: its `SessionStart` hook launches detached
+sessions.
+
+A standalone plugin owns its own `.claude-plugin/plugin.json`, version, CHANGELOG, and
+README, and appears in the marketplace `plugins` array with `"source":
+"./plugins/<name>"`. Its skills and commands stay inside it — they are not listed in the
+root plugin's `skills` array or the bucket READMEs.
 
 ## Skills
 
@@ -36,11 +47,13 @@ with at least a `description`.
 
 ## Releasing
 
-Bump `version` in `.claude-plugin/plugin.json`. That version is what Claude uses to
-decide when installed users see an update — a change with no bump is a change nobody
-gets.
+Bump `version` in the changed plugin's `plugin.json` — the root one for skills and
+commands, `plugins/<name>/.claude-plugin/plugin.json` for a standalone. That version is
+what Claude uses to decide when installed users see an update — a change with no bump is
+a change nobody gets.
 
-Run `claude plugin validate . --strict` after touching either manifest, and
+Run `claude plugin validate . --strict` after touching either manifest,
+`claude plugin validate plugins/<name> --strict` for a standalone plugin, and
 `claude plugin validate .claude-plugin/plugin.json --strict` to also lint the skills and
 commands themselves.
 
