@@ -27,22 +27,11 @@ plugins/<name>/
 Skills and commands are auto-discovered from those two directories — there is no list to
 keep in sync. Nesting is not discovered: a skill is `skills/<name>/SKILL.md`, one level
 deep, and a command is `commands/<name>.md`, flat. A subfolder under `commands/`
-namespaces the invocation (`/bucket:name`), which is worse to type.
+namespaces the invocation (`/<subfolder>:name`), which is worse to type.
 
 Every `.md` in `commands/` becomes a command, so don't put a `README.md` there — it would
 ship as `/README`. That's what the `.gitkeep` is for. Each command needs YAML frontmatter
 with at least a `description`.
-
-## Unshipped skills
-
-Being under `plugins/` is the only thing that makes a skill shipped. A draft that isn't
-ready goes in `skills/in-progress/<name>/`, a retired one in `skills/deprecated/<name>/` —
-create either directory the first time you need it, and delete it once it's empty again.
-Promoting a draft is one move:
-
-```bash
-git mv skills/in-progress/<name> plugins/<plugin>/skills/<name>
-```
 
 ## What has to stay in sync
 
@@ -50,8 +39,11 @@ git mv skills/in-progress/<name> plugins/<plugin>/skills/<name>
   its `SKILL.md` or `.md`.
 - Every shipped skill and command has a line in the top-level `README.md`, under its
   plugin's heading, same link.
-- Skills in `skills/in-progress/` and `skills/deprecated/` appear in neither.
 - Empty sections say `_No skills yet._` / `_No commands yet._` rather than sitting blank.
+- Every plugin's `skills/` and `commands/` directory is tracked by git, with a `.gitkeep`
+  when it is otherwise empty. Git does not track empty directories, and a plugin whose
+  declared `"skills": "./skills/"` path is missing on a fresh clone fails to load — local
+  validation passes right up until someone installs it.
 
 ## Releasing
 
