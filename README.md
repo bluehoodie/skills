@@ -34,7 +34,9 @@ _No skills yet._
 
 Non-code workflow tools.
 
-_No skills yet._
+- [context-tune](./skills/productivity/context-tune/SKILL.md) — audit and rightsize a
+  project's CLAUDE.md files, memories, and skills against the Claude 5
+  context-engineering principles.
 
 ## Commands
 
