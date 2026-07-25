@@ -35,13 +35,14 @@ with at least a `description`.
 
 ## Unshipped skills
 
-Drafts and retired skills live outside `plugins/`, so they ship to nobody:
+Being under `plugins/` is the only thing that makes a skill shipped. A draft that isn't
+ready goes in `skills/in-progress/<name>/`, a retired one in `skills/deprecated/<name>/` —
+create either directory the first time you need it, and delete it once it's empty again.
+Promoting a draft is one move:
 
-- `skills/in-progress/` — drafts not yet ready
-- `skills/deprecated/` — no longer used
-
-Being under `plugins/` is the only thing that makes a skill shipped. Promoting a draft is
-one move: `git mv skills/in-progress/<name> plugins/<plugin>/skills/<name>`.
+```bash
+git mv skills/in-progress/<name> plugins/<plugin>/skills/<name>
+```
 
 ## What has to stay in sync
 
