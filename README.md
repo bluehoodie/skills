@@ -1,7 +1,8 @@
 # skills
 
 Colin Dickson's public [Claude Code](https://code.claude.com/docs/en/overview) skills and
-commands, shipped as a [plugin](https://code.claude.com/docs/en/plugins).
+commands, shipped as [plugins](https://code.claude.com/docs/en/plugins) split by what
+they're for — install only the ones you need.
 
 ## Install
 
@@ -9,48 +10,44 @@ Inside Claude Code:
 
 ```
 /plugin marketplace add bluehoodie/skills
-/plugin install bluehoodie-skills@bluehoodie
+/plugin install engineering@bluehoodie
 ```
 
 Or from your shell:
 
 ```bash
 claude plugin marketplace add bluehoodie/skills
-claude plugin install bluehoodie-skills@bluehoodie
+claude plugin install engineering@bluehoodie
 ```
 
-The plugin is a managed, read-only bundle — it updates when a new version ships, rather
-than dropping editable copies into your repo.
+Plugins are managed, read-only bundles — they update when a new version ships, rather than
+dropping editable copies into your repo.
 
-## Skills
+## Plugins
 
-### Engineering
+### [engineering](./plugins/engineering)
 
-Skills for code work.
+Skills and commands for code work. `/plugin install engineering@bluehoodie`
 
 _No skills yet._
 
-### Productivity
+_No commands yet._
 
-Non-code workflow tools.
+### [productivity](./plugins/productivity)
 
-- [context-tune](./skills/productivity/context-tune/SKILL.md) — audit and rightsize a
-  project's CLAUDE.md files, memories, and skills against the Claude 5
+Skills and commands for non-code workflow. `/plugin install productivity@bluehoodie`
+
+- [context-tune](./plugins/productivity/skills/context-tune/SKILL.md) — audit and rightsize
+  a project's CLAUDE.md files, memories, and skills against the Claude 5
   context-engineering principles.
-
-## Commands
 
 _No commands yet._
 
-## Other plugins
+### [dream](./plugins/dream)
 
-This marketplace also ships plugins that are more than a skill — they carry hooks or
-scripts, so they install separately and only if you want them.
-
-- [dream](./plugins/dream) — periodic memory consolidation. A `SessionStart` hook watches
-  time and session gates, then runs a four-phase pass over Claude Code's auto-memory so it
-  stays relevant instead of growing forever. Install with
-  `/plugin install dream@bluehoodie`.
+Periodic memory consolidation. A `SessionStart` hook watches time and session gates, then
+runs a four-phase pass over Claude Code's auto-memory so it stays relevant instead of
+growing forever. `/plugin install dream@bluehoodie`
 
 ## Contributing
 

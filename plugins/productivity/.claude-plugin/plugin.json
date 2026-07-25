@@ -1,0 +1,15 @@
+{
+  "name": "productivity",
+  "description": "Colin Dickson's Claude Code skills and commands for non-code workflow.",
+  "version": "0.1.0",
+  "license": "MIT",
+  "author": {
+    "name": "Colin Dickson",
+    "url": "https://github.com/bluehoodie"
+  },
+  "homepage": "https://github.com/bluehoodie/skills/tree/main/plugins/productivity",
+  "repository": "https://github.com/bluehoodie/skills",
+  "keywords": ["skills", "commands", "productivity"],
+  "commands": "./commands/",
+  "skills": "./skills/"
+}
