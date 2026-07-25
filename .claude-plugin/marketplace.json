@@ -4,7 +4,7 @@
     "name": "Colin Dickson",
     "url": "https://github.com/bluehoodie"
   },
-  "description": "Colin Dickson's public agent skills and commands, as an installable Claude Code plugin.",
+  "description": "Colin Dickson's public agent skills and commands, as installable Claude Code plugins.",
   "plugins": [
     {
       "name": "bluehoodie-skills",
@@ -16,6 +16,18 @@
         "commands",
         "engineering",
         "productivity"
+      ]
+    },
+    {
+      "name": "dream",
+      "source": "./plugins/dream",
+      "description": "Periodic memory consolidation — review, deduplication, pruning, and reindexing of Claude Code's file-based memory system.",
+      "category": "productivity",
+      "keywords": [
+        "memory",
+        "consolidation",
+        "maintenance",
+        "dream"
       ]
     }
   ]
