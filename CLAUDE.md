@@ -39,7 +39,6 @@ with at least a `description`.
   its `SKILL.md` or `.md`.
 - Every shipped skill and command has a line in the top-level `README.md`, under its
   plugin's heading, same link.
-- Empty sections say `_No skills yet._` / `_No commands yet._` rather than sitting blank.
 - Every plugin's `skills/` and `commands/` directory is tracked by git, with a `.gitkeep`
   when it is otherwise empty. Git does not track empty directories, and a plugin whose
   declared `"skills": "./skills/"` path is missing on a fresh clone fails to load — local

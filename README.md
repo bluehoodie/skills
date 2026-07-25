@@ -29,9 +29,7 @@ dropping editable copies into your repo.
 
 Skills and commands for code work. `/plugin install engineering@bluehoodie`
 
-_No skills yet._
-
-_No commands yet._
+_No engineering skills published yet._
 
 ### [productivity](./plugins/productivity)
 
@@ -41,13 +39,16 @@ Skills and commands for non-code workflow. `/plugin install productivity@bluehoo
   a project's CLAUDE.md files, memories, and skills against the Claude 5
   context-engineering principles.
 
-_No commands yet._
 
 ### [dream](./plugins/dream)
 
 Periodic memory consolidation. A `SessionStart` hook watches time and session gates, then
 runs a four-phase pass over Claude Code's auto-memory so it stays relevant instead of
 growing forever. `/plugin install dream@bluehoodie`
+
+Based on the dream feature originally built into Claude Code, but which is currently a disabled feature. This plugin is a recreation of that feature, with some improvements and changes to make it more useful.  
+
+**If Anthropic ever re-enables the dream feature in Claude Code, this plugin will be deprecated.**
 
 ## Contributing
 
