@@ -1,5 +1,21 @@
 # Changelog
 
+## 2.1.2
+
+- Preserve `metadata:` keys a consolidation does not recognise. A memory file is
+  not only dream's to write, and anything else managing memories may record
+  provenance there. A merge or rewrite that normalised an unknown key away
+  destroyed information nothing could reconstruct.
+
+## 2.1.1
+
+- Slugify the launch directory the way Claude Code does — every non-alphanumeric
+  character becomes a dash, not just `/`. Without a `transcript_path` in the hook
+  payload (`dream.py run`, `reset`, `restore`, `status` from a slash command) any
+  project path holding a `.`, `_` or a space resolved to a state directory the
+  hook itself never uses, so `/dream-reset` and `/dream-restore` operated on
+  nothing.
+
 ## 2.1.0
 
 - Snapshot `memory/` into the state directory before every dream, and add a

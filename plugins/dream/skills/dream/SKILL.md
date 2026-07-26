@@ -121,6 +121,12 @@ metadata:
  Link related memories with [[their-name]].>
 ```
 
+**Keep `metadata:` keys you do not recognise.** A memory file is not only yours
+to write — anything that manages memories may record provenance there. Carry
+unknown keys through a merge or rewrite rather than normalising them away;
+dropping one silently costs information nothing can reconstruct. When merging two
+memories that both carry the same key, keep the surviving file's.
+
 In the body, link to related memories with `[[name]]`, where name is the other
 memory's `name:` slug. Link liberally — a `[[name]]` that does not match an
 existing memory yet is fine; it marks something worth writing later, not an

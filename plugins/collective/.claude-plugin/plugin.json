@@ -1,0 +1,13 @@
+{
+  "name": "collective",
+  "description": "Share Claude Code memories across a team through the repo — your settled team-worthy memories are assimilated out as pull requests, and you adapt the collective's in when you ask for them.",
+  "version": "1.0.0",
+  "license": "MIT",
+  "author": {
+    "name": "Colin Dickson",
+    "url": "https://github.com/bluehoodie"
+  },
+  "homepage": "https://github.com/bluehoodie/skills/tree/main/plugins/collective",
+  "keywords": ["memory", "team", "sharing", "knowledge", "collective"],
+  "commands": "./commands/"
+}

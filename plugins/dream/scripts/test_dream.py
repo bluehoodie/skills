@@ -7,6 +7,7 @@ touches real state, real memories, or spawns a real session.
 
 import json
 import os
+import re
 import subprocess
 import sys
 import tempfile
@@ -37,7 +38,10 @@ class Sandbox:
         self.home = Path(tempfile.mkdtemp())
         self.work = self.home / "work"          # where the session was launched
         self.work.mkdir()
-        self.slug = str(self.work).replace("/", "-")
+        # The same rule Claude Code slugs with, so the cwd fallback in resolve()
+        # lands here — a temp dir holds dots, and dashing only the slashes made
+        # the fixture agree with a bug instead of with the CLI.
+        self.slug = re.sub(r"[^a-zA-Z0-9]", "-", str(self.work))
         self.proj = self.home / ".claude" / "projects" / self.slug
         self.state = self.home / ".claude" / "dream-plugin-state" / self.slug
         self.proj.mkdir(parents=True)

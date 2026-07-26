@@ -4,7 +4,7 @@ Periodic memory consolidation for [Claude Code](https://code.claude.com/docs/en/
 
 ## The Problem
 
-Claude Code's auto-memory saves context across sessions into `~/.claude/projects/<project>/memory/`, where `<project>` is the launch directory with every `/` replaced by `-`. Nothing prunes it — the folder only ever grows. Over time this suffers from **drift** (facts go stale), **duplication** (sessions record overlapping information), **bloat** (MEMORY.md outgrows its usefulness), **date rot** ("last week" loses meaning), and **missing signal** (discoveries worth keeping never get written down).
+Claude Code's auto-memory saves context across sessions into `~/.claude/projects/<project>/memory/`, where `<project>` is the launch directory with every non-alphanumeric character replaced by `-`. Nothing prunes it — the folder only ever grows. Over time this suffers from **drift** (facts go stale), **duplication** (sessions record overlapping information), **bloat** (MEMORY.md outgrows its usefulness), **date rot** ("last week" loses meaning), and **missing signal** (discoveries worth keeping never get written down).
 
 That unbounded growth is the reason this plugin exists. A memory folder that accumulates forever stops being memory and becomes an archive; consolidation is what keeps what's in there relevant.
 

@@ -27,6 +27,7 @@ Environment:
 
 import json
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -52,12 +53,17 @@ def resolve(payload):
     cwd = payload.get("cwd") or os.environ.get("CLAUDE_PROJECT_DIR") or os.getcwd()
     transcript = payload.get("transcript_path")
     # transcript_path is authoritative when present — it lives in the directory we
-    # want. Otherwise slugify the launch cwd the way Claude Code does. Never use
-    # the git root: a session started in a subdirectory of a repo is its own
-    # project as far as Claude Code is concerned.
+    # want. Otherwise slugify the launch cwd the way Claude Code does: EVERY
+    # non-alphanumeric character becomes a dash, not just the slashes, or a path
+    # holding a `.`, `_` or a space keys the state directory the hook does not
+    # use. Never use the git root: a session started in a subdirectory of a repo
+    # is its own project as far as Claude Code is concerned.
     if transcript:
         return Path(transcript).parent, cwd
-    return Path.home() / ".claude" / "projects" / cwd.replace("/", "-"), cwd
+    # ponytail: Claude Code also truncates at 200 chars and appends a hash of the
+    # path. Not reproduced — the hash is internal. Copy it if a path that long
+    # ever shows up.
+    return Path.home() / ".claude" / "projects" / re.sub(r"[^a-zA-Z0-9]", "-", cwd), cwd
 
 
 def state_dir(project):
