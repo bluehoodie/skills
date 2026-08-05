@@ -33,20 +33,21 @@ has() { # has <label> <needle> <haystack>
 
 # --- Task 1: discovery and list
 out=$(bh list)
+check "list exits clean" "0" "$(bh list >/dev/null 2>&1; echo $?)"
 has "list names the dream skill" "productivity/dream" "$out"
 has "list names the dream-status command" "productivity/dream-status" "$out"
 has "list names the adversarial-review skill" "engineering/adversarial-review" "$out"
-has "list reports the plugin version" "productivity 0" "$out"
+has "list reports the plugin version" "productivity $(node -p "require('$REPO/plugins/productivity/.claude-plugin/plugin.json').version")" "$out"
 
-# A directory under skills/ with no SKILL.md is not a skill.
+# skills and commands print with their type marker
 has "list marks types" "(skill)" "$out"
 has "list marks command types" "(command)" "$out"
 
 # list must not crash or write anything when nothing is installed yet.
 absent "list writes no manifest" "$HOME/.claude/bluehoodie/installed.json"
 
-check "unknown plugin exits nonzero" "1" "$(bh install nope/thing >/dev/null 2>&1; echo $?)"
-check "unknown skill exits nonzero" "1" "$(bh install productivity/nope >/dev/null 2>&1; echo $?)"
+# resolve()'s unknown-plugin/unknown-skill exits move here once Task 2 adds
+# install() and resolve() is actually reachable; asserted against stderr then.
 
 [ "$fail" -eq 0 ] && printf '\nall checks passed\n' || printf '\nFAILURES\n'
 exit "$fail"
