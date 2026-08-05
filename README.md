@@ -20,13 +20,13 @@ claude plugin marketplace add bluehoodie/skills
 claude plugin install engineering@bluehoodie
 ```
 
-Plugins are managed, read-only bundles — they update when a new version ships, rather than
-dropping editable copies into your repo.
+This is the recommended way in. Plugins are managed, read-only bundles — they update when
+a new version ships, rather than dropping editable copies into your repo.
 
 ### Without a marketplace
 
-If your organisation's policy blocks third-party plugin marketplaces, install
-individual skills straight into `~/.claude/`:
+There is also a small CLI that copies individual skills and commands straight into
+`~/.claude/`, for setups where a marketplace isn't the right fit:
 
 ```bash
 npx bluehoodie install productivity/dream   # one skill or command
@@ -35,10 +35,10 @@ npx bluehoodie remove productivity/dream
 npx bluehoodie list                         # what's available, what's installed
 ```
 
-This copies files you own and can edit, rather than managing a bundle — so it
-does not auto-update, and it is an alternative to the marketplace rather than a
-supplement. If you already installed a plugin the usual way, uninstall it first
-rather than running both.
+What you get are ordinary files you own and can edit, not a managed bundle — so nothing
+auto-updates, and you re-run `install` to pick up a new version. Use one route or the
+other, not both: if a plugin is already installed from the marketplace, uninstall it
+before installing the same thing this way.
 
 ## Plugins
 
@@ -66,14 +66,6 @@ Skills and commands for non-code workflow. `/plugin install productivity@bluehoo
 - [dream-restore](./plugins/productivity/commands/dream-restore.md) — undo a dream by
   reverting that project's memory commit.
 
-> **Upgrading from the standalone `dream` plugin?** It has been removed — memory
-> consolidation now ships inside `productivity`. Run `/plugin uninstall dream@bluehoodie`
-> explicitly: uninstalling is the only thing that stops version 2.x's `SessionStart`
-> hook, which fires a consolidation in every session. Your memories are untouched by
-> the move, and `~/.claude/dream-plugin-state/` becomes unused — but it holds the only
-> snapshot of your last 2.x dream, so undo anything you still want with 2.x's
-> `/dream:dream-restore` before deleting it.
->
 > Dream is based on a feature originally built into Claude Code, since disabled.
 > **If Anthropic ever re-enables it, this is deprecated in favour of theirs.**
 

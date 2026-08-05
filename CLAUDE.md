@@ -62,8 +62,8 @@ claude plugin validate plugins/<name> --strict       # one plugin
 
 All of these must pass clean. There are no expected warnings.
 
-The repo root is also the `bluehoodie` npm package, which installs skills for
-users whose policy blocks the marketplace. Its `version` in `package.json` is
+The repo root is also the `bluehoodie` npm package, the non-marketplace install
+route. Its `version` in `package.json` is
 the package's own semver, independent of every plugin version — bump it on any
 publish, meaning any change to `bin/bluehoodie.js` **or** `plugins/`, since the
 tarball ships both. A skill edit therefore bumps two numbers: the plugin's and the

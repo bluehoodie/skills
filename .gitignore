@@ -4,3 +4,4 @@ __pycache__/
 .superpowers/
 docs/superpowers/
 node_modules/
+package-lock.json

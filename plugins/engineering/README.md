@@ -7,8 +7,8 @@ Claude Code skills and commands for code work.
 /plugin install engineering@bluehoodie
 ```
 
-Blocked from adding third-party marketplaces? `npx bluehoodie install engineering`
-copies these into `~/.claude/` instead — see
+Not using a marketplace? `npx bluehoodie install engineering` copies these into
+`~/.claude/` as ordinary files instead — see
 [the alternative install path](../../README.md#without-a-marketplace).
 
 ## Skills
