@@ -234,8 +234,12 @@ function main (argv) {
     if (!spec) die(`${cmd} needs a target, e.g. ${cmd} productivity/dream`)
     return cmd === 'install' ? install(spec, force) : remove(spec)
   }
-  console.log(USAGE)
-  process.exit(cmd ? 1 : 0)
+  if (!cmd) {
+    console.log(USAGE)
+    process.exit(0)
+  }
+  process.stderr.write(USAGE + '\n')
+  process.exit(1)
 }
 
 main(process.argv.slice(2))

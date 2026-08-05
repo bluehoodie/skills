@@ -312,5 +312,14 @@ has "the refusal names the containment rule" "refusing to remove" "$escout"
 check "the outside victim survives the traversal attempt" "$victimbefore" "$(cat "$VICTIM/secret.txt")"
 rm -rf "$ESCROOT" "$VICTIM"
 
+# --- packaging: the tarball must actually carry the plugins tree. The rest of
+# this suite runs the CLI from the repo, so it passes whether or not `files`
+# ships plugins/ — this is the only check that would catch that.
+packed=$(cd "$REPO" && npm pack --dry-run --json 2>/dev/null)
+has "the tarball ships a skill" "plugins/productivity/skills/dream/SKILL.md" "$packed"
+has "the tarball ships the CLI" "bin/bluehoodie.js" "$packed"
+case "$packed" in *test-bluehoodie.sh*) printf 'FAIL the test script leaked into the tarball\n'; fail=1 ;;
+  *) printf 'ok   the test script stays out of the tarball\n' ;; esac
+
 [ "$fail" -eq 0 ] && printf '\nall checks passed\n' || printf '\nFAILURES\n'
 exit "$fail"
