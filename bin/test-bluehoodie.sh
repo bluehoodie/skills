@@ -46,8 +46,44 @@ has "list marks command types" "(command)" "$out"
 # list must not crash or write anything when nothing is installed yet.
 absent "list writes no manifest" "$HOME/.claude/bluehoodie/installed.json"
 
-# resolve()'s unknown-plugin/unknown-skill exits move here once Task 2 adds
-# install() and resolve() is actually reachable; asserted against stderr then.
+err=$(bh install nope/thing 2>&1 >/dev/null)
+has "unknown plugin names the plugin" "bluehoodie: unknown plugin: nope" "$err"
+err=$(bh install productivity/nope 2>&1 >/dev/null)
+has "unknown skill names the target" "bluehoodie: unknown skill or command: productivity/nope" "$err"
+
+# --- Task 2: install
+out=$(bh install productivity/dream)
+present "install lands the dream skill" "$HOME/.claude/skills/dream/SKILL.md"
+has "install prints the absolute path it wrote" "$HOME/.claude/skills/dream" "$out"
+present "install writes the manifest" "$HOME/.claude/bluehoodie/installed.json"
+
+manifest=$(cat "$HOME/.claude/bluehoodie/installed.json")
+has "manifest records the plugin" '"plugin": "productivity"' "$manifest"
+has "manifest records the type" '"type": "skill"' "$manifest"
+has "manifest records the package version" '"package"' "$manifest"
+# The recorded version is the PLUGIN's, not the package's — they differ, so a
+# manifest that stored the package version by mistake fails here.
+has "manifest records the plugin version" "\"version\": \"$(node -p "require('$REPO/plugins/productivity/.claude-plugin/plugin.json').version")\"" "$manifest"
+
+has "list marks it installed" "[installed]" "$(bh list)"
+
+# Whole-plugin install picks up commands as flat .md files.
+bh install productivity >/dev/null
+present "install <plugin> lands dream-status" "$HOME/.claude/commands/dream-status.md"
+present "install <plugin> lands dream-restore" "$HOME/.claude/commands/dream-restore.md"
+present "install <plugin> lands context-tune" "$HOME/.claude/skills/context-tune/SKILL.md"
+
+# Reinstalling something bluehoodie owns is an upgrade, not an error.
+check "reinstall succeeds" "0" "$(bh install productivity/dream >/dev/null 2>&1; echo $?)"
+
+# A path bluehoodie does not own is never clobbered.
+mkdir -p "$HOME/.claude/skills/adversarial-review"
+echo "mine" > "$HOME/.claude/skills/adversarial-review/SKILL.md"
+check "install refuses to clobber a foreign path" "1" \
+  "$(bh install engineering/adversarial-review >/dev/null 2>&1; echo $?)"
+check "the foreign file is untouched" "mine" "$(cat "$HOME/.claude/skills/adversarial-review/SKILL.md")"
+check "--force overrides" "0" \
+  "$(bh install engineering/adversarial-review --force >/dev/null 2>&1; echo $?)"
 
 [ "$fail" -eq 0 ] && printf '\nall checks passed\n' || printf '\nFAILURES\n'
 exit "$fail"

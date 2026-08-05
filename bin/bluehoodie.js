@@ -94,6 +94,48 @@ function list () {
   console.log(`\nrunning bluehoodie ${PKG.version}`)
 }
 
+function dest (item) {
+  return item.type === 'skill'
+    ? path.join(CLAUDE, 'skills', item.name)
+    : path.join(CLAUDE, 'commands', `${item.name}.md`)
+}
+
+function source (plugin, item) {
+  return item.type === 'skill'
+    ? path.join(SOURCE, plugin, 'skills', item.name)
+    : path.join(SOURCE, plugin, 'commands', `${item.name}.md`)
+}
+
+// Filled in by Task 3.
+function installScripts (plugin) {}
+
+function install (spec, force) {
+  const { plugin, items } = resolve(spec)
+  const m = readManifest()
+  const version = pluginVersion(plugin)
+
+  for (const item of items) {
+    const target = dest(item)
+    const owned = m.entries[item.name]
+    if (fs.existsSync(target) && !force && (!owned || owned.plugin !== plugin)) {
+      die(`${target} already exists and was not installed by bluehoodie.\n` +
+          '  Move it aside, or re-run with --force.')
+    }
+  }
+
+  console.log(`installing ${plugin} ${version}`)
+  installScripts(plugin)
+  for (const item of items) {
+    const target = dest(item)
+    fs.mkdirSync(path.dirname(target), { recursive: true })
+    fs.rmSync(target, { recursive: true, force: true })
+    fs.cpSync(source(plugin, item), target, { recursive: true })
+    m.entries[item.name] = { type: item.type, plugin, version }
+    console.log(`  ${target}`)
+  }
+  writeManifest(m)
+}
+
 function main (argv) {
   const force = argv.includes('--force')
   const [cmd, spec] = argv.filter(a => !a.startsWith('--'))
