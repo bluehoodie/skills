@@ -61,3 +61,19 @@ claude plugin validate plugins/<name> --strict       # one plugin
 ```
 
 All of these must pass clean. There are no expected warnings.
+
+The repo root is also the `bluehoodie` npm package, which installs skills for
+users whose policy blocks the marketplace. Its `version` in `package.json` is
+the package's own semver, independent of every plugin version — bump it on any
+publish, meaning any change under `bin/` **or** `plugins/`, since the tarball
+ships both. A skill edit therefore bumps two numbers: the plugin's and the
+package's.
+
+`"files"` in `package.json` must keep listing `plugins`. If it stops, `npx
+bluehoodie` installs an empty tree — the same failure class as a missing
+version bump, where the published artifact silently stops matching the repo.
+
+```bash
+npm pack --dry-run          # confirm plugins/ is in the tarball
+bash bin/test-bluehoodie.sh # end-to-end install/remove against a temp HOME
+```

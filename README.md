@@ -23,6 +23,23 @@ claude plugin install engineering@bluehoodie
 Plugins are managed, read-only bundles — they update when a new version ships, rather than
 dropping editable copies into your repo.
 
+### Without a marketplace
+
+If your organisation's policy blocks third-party plugin marketplaces, install
+individual skills straight into `~/.claude/`:
+
+```bash
+npx bluehoodie install productivity/dream   # one skill or command
+npx bluehoodie install productivity         # everything in a plugin
+npx bluehoodie remove productivity/dream
+npx bluehoodie list                         # what's available, what's installed
+```
+
+This copies files you own and can edit, rather than managing a bundle — so it
+does not auto-update, and it is an alternative to the marketplace rather than a
+supplement. If you already installed a plugin the usual way, uninstall it first
+rather than running both.
+
 ## Plugins
 
 ### [engineering](./plugins/engineering)
