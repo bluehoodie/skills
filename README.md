@@ -49,15 +49,16 @@ Skills and commands for non-code workflow. `/plugin install productivity@bluehoo
 - [dream-restore](./plugins/productivity/commands/dream-restore.md) — undo a dream by
   reverting that project's memory commit.
 
-### dream (deprecated)
-
-Memory consolidation moved into [productivity](./plugins/productivity). The `dream`
-plugin is now an empty stub that removes the `SessionStart` hook version 2.x
-installed; install `productivity@bluehoodie` and uninstall `dream@bluehoodie`. The
-entry is removed one release from now.
-
-Based on the dream feature originally built into Claude Code, since disabled.
-**If Anthropic ever re-enables it, this is deprecated in favour of theirs.**
+> **Upgrading from the standalone `dream` plugin?** It has been removed — memory
+> consolidation now ships inside `productivity`. Run `/plugin uninstall dream@bluehoodie`
+> explicitly: uninstalling is the only thing that stops version 2.x's `SessionStart`
+> hook, which fires a consolidation in every session. Your memories are untouched by
+> the move, and `~/.claude/dream-plugin-state/` becomes unused — but it holds the only
+> snapshot of your last 2.x dream, so undo anything you still want with 2.x's
+> `/dream:dream-restore` before deleting it.
+>
+> Dream is based on a feature originally built into Claude Code, since disabled.
+> **If Anthropic ever re-enables it, this is deprecated in favour of theirs.**
 
 ### [collective](./plugins/collective)
 

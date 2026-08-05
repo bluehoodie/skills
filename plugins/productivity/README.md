@@ -37,9 +37,32 @@ baseline: projects you have worked in during the last week are consolidated,
 older ones are marked as already seen. That keeps a fresh install from
 consolidating years of history in one go.
 
-To make it recurring, create a scheduled routine in the Claude Desktop app with
-the prompt `/productivity:dream`. Nothing is installed on your machine by this
-plugin; the schedule lives in Claude, not in launchd or cron.
+To make it recurring, create a scheduled routine in the Claude Desktop app.
+Nothing is installed on your machine by this plugin; the schedule lives in
+Claude, not in launchd or cron.
+
+A routine prompt has to stand on its own — the run has no memory of the
+conversation that created it — so give it the whole instruction rather than just
+the command:
+
+```
+Consolidate my Claude Code memories by running /productivity:dream.
+
+Run from my home directory, not from inside a project. A dream never
+consolidates the project it is running in, so pointing this at a real project
+would silently leave that project's memories un-consolidated forever.
+
+Print the roll-up it produces and nothing else — one line per project, plus any
+projects the ten-per-pass cap deferred. Do not summarise the memories
+themselves, and do not consolidate anything by hand if the pass reports nothing
+to do.
+
+If any project reports deletions, say that /productivity:dream-restore can undo
+that pass.
+```
+
+Nightly is a reasonable cadence, at an hour your machine is awake and you are
+not working — pick something off the hour, like 03:17, rather than 03:00.
 
 Three things worth knowing before you schedule it:
 
