@@ -114,8 +114,33 @@ function source (plugin, item) {
     : path.join(SOURCE, plugin, 'commands', `${item.name}.md`)
 }
 
-// Filled in by Task 3.
-function installScripts (plugin) {}
+function installScripts (plugin) {
+  const src = path.join(SOURCE, plugin, 'scripts')
+  if (!fs.existsSync(src)) return
+  const target = path.join(SUPPORT, plugin, 'scripts')
+  fs.rmSync(target, { recursive: true, force: true })
+  fs.mkdirSync(path.dirname(target), { recursive: true })
+  fs.cpSync(src, target, { recursive: true })
+  for (const f of fs.readdirSync(target)) {
+    if (f.endsWith('.sh')) fs.chmodSync(path.join(target, f), 0o755)
+  }
+  console.log(`  ${target}`)
+}
+
+// ${CLAUDE_PLUGIN_ROOT} is substituted by Claude Code's plugin loader. Nothing
+// substitutes it for a loose skill in ~/.claude/skills, where it resolves to an
+// empty string — so point it at the support dir ourselves.
+function rewrite (target, pluginRoot) {
+  const files = fs.statSync(target).isDirectory()
+    ? fs.readdirSync(target, { recursive: true }).map(f => path.join(target, f))
+    : [target]
+  for (const f of files) {
+    if (!f.endsWith('.md') || !fs.statSync(f).isFile()) continue
+    const before = fs.readFileSync(f, 'utf8')
+    const after = before.split('${CLAUDE_PLUGIN_ROOT}').join(pluginRoot)
+    if (after !== before) fs.writeFileSync(f, after)
+  }
+}
 
 function install (spec, force) {
   const { plugin, items } = resolve(spec)
@@ -138,6 +163,7 @@ function install (spec, force) {
     fs.mkdirSync(path.dirname(target), { recursive: true })
     fs.rmSync(target, { recursive: true, force: true })
     fs.cpSync(source(plugin, item), target, { recursive: true })
+    rewrite(target, path.join(SUPPORT, plugin))
     m.entries[key(item)] = { type: item.type, plugin, version }
     console.log(`  ${target}`)
   }

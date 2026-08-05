@@ -127,5 +127,35 @@ has "corrupt manifest warns on stderr" \
   "bluehoodie: $HOME/.claude/bluehoodie/installed.json is unreadable — treating nothing as installed" "$err"
 check "list still exits 0 on a corrupt manifest" "0" "$(bh list >/dev/null 2>&1; echo $?)"
 
+# --- Task 3: support scripts and token rewrite
+rm -rf "$HOME/.claude"
+bh install productivity >/dev/null
+
+present "scripts land in the per-plugin support dir" \
+  "$HOME/.claude/bluehoodie/productivity/scripts/survey.sh"
+if [ -x "$HOME/.claude/bluehoodie/productivity/scripts/survey.sh" ]; then
+  printf 'ok   survey.sh is executable\n'
+else printf 'FAIL survey.sh is not executable\n'; fail=1; fi
+
+# The check that matters most: a plain cp -r passes every "file exists" test
+# above and still ships a skill that cannot find its own script.
+leaked=$(grep -rl 'CLAUDE_PLUGIN_ROOT' "$HOME/.claude/skills" "$HOME/.claude/commands" 2>/dev/null)
+check "no installed file still contains the raw token" "" "$leaked"
+
+# ...and the path it was rewritten to must actually resolve.
+rewritten=$(grep -oh '/[^" ]*/scripts/survey.sh' "$HOME/.claude/skills/dream/SKILL.md" | head -1)
+present "the rewritten path resolves" "$rewritten"
+
+# The rewrite reaches frontmatter, not just the body.
+has "allowed-tools frontmatter is rewritten" "$HOME/.claude/bluehoodie/productivity" \
+  "$(head -12 "$HOME/.claude/skills/dream/SKILL.md")"
+
+# A plugin with no scripts/ dir must not grow an empty support dir.
+bh install engineering >/dev/null
+absent "no scripts dir means no support dir" "$HOME/.claude/bluehoodie/engineering"
+
+# A skill directory's extra files come along, not just its SKILL.md.
+present "extra skill files are copied" "$HOME/.claude/skills/adversarial-review/critic-agent.md"
+
 [ "$fail" -eq 0 ] && printf '\nall checks passed\n' || printf '\nFAILURES\n'
 exit "$fail"
