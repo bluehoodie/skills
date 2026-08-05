@@ -60,7 +60,7 @@ present "install writes the manifest" "$HOME/.claude/bluehoodie/installed.json"
 manifest=$(cat "$HOME/.claude/bluehoodie/installed.json")
 has "manifest records the plugin" '"plugin": "productivity"' "$manifest"
 has "manifest records the type" '"type": "skill"' "$manifest"
-has "manifest records the package version" '"package"' "$manifest"
+has "manifest records the package version" "\"package\": \"$(node -p "require('$REPO/package.json').version")\"" "$manifest"
 # The recorded version is the PLUGIN's, not the package's — they differ, so a
 # manifest that stored the package version by mistake fails here.
 has "manifest records the plugin version" "\"version\": \"$(node -p "require('$REPO/plugins/productivity/.claude-plugin/plugin.json').version")\"" "$manifest"
@@ -75,6 +75,9 @@ present "install <plugin> lands context-tune" "$HOME/.claude/skills/context-tune
 
 # Reinstalling something bluehoodie owns is an upgrade, not an error.
 check "reinstall succeeds" "0" "$(bh install productivity/dream >/dev/null 2>&1; echo $?)"
+check "reinstall lands the shipped content" \
+  "$(cat "$REPO/plugins/productivity/skills/dream/SKILL.md")" \
+  "$(cat "$HOME/.claude/skills/dream/SKILL.md")"
 
 # A path bluehoodie does not own is never clobbered.
 mkdir -p "$HOME/.claude/skills/adversarial-review"
@@ -84,6 +87,45 @@ check "install refuses to clobber a foreign path" "1" \
 check "the foreign file is untouched" "mine" "$(cat "$HOME/.claude/skills/adversarial-review/SKILL.md")"
 check "--force overrides" "0" \
   "$(bh install engineering/adversarial-review --force >/dev/null 2>&1; echo $?)"
+check "--force lands the shipped content, not the mine sentinel" \
+  "$(cat "$REPO/plugins/engineering/skills/adversarial-review/SKILL.md")" \
+  "$(cat "$HOME/.claude/skills/adversarial-review/SKILL.md")"
+
+# --- Task 2 review fix: a plugin with a same-named skill and command must
+# keep both entries owned (manifest keyed by "type:name", not bare name).
+# Built under a temp copy of the CLI + a throwaway plugins/ tree, never the
+# repo's real plugins/.
+FIXROOT=$(mktemp -d)
+mkdir -p "$FIXROOT/bin" "$FIXROOT/plugins/fixture/skills/widget" "$FIXROOT/plugins/fixture/commands" \
+  "$FIXROOT/plugins/fixture/.claude-plugin"
+cp "$CLI" "$FIXROOT/bin/bluehoodie.js"
+echo '{"version":"0.0.1"}' > "$FIXROOT/package.json"
+echo '{"version":"1.0.0"}' > "$FIXROOT/plugins/fixture/.claude-plugin/plugin.json"
+echo 'skill' > "$FIXROOT/plugins/fixture/skills/widget/SKILL.md"
+echo 'command' > "$FIXROOT/plugins/fixture/commands/widget.md"
+
+node "$FIXROOT/bin/bluehoodie.js" install fixture >/dev/null
+present "same-name skill lands" "$HOME/.claude/skills/widget/SKILL.md"
+present "same-name command lands" "$HOME/.claude/commands/widget.md"
+fixmanifest=$(cat "$HOME/.claude/bluehoodie/installed.json")
+has "manifest keeps the skill entry" '"skill:widget"' "$fixmanifest"
+has "manifest keeps the command entry" '"command:widget"' "$fixmanifest"
+rm -rf "$FIXROOT"
+
+# --- readManifest resilience (Task 2 review findings 2 & 3)
+# A hand-edited manifest missing 'entries' must not crash list or install.
+mkdir -p "$HOME/.claude/bluehoodie"
+echo '{"package":"0.1.0"}' > "$HOME/.claude/bluehoodie/installed.json"
+check "list survives a manifest with no entries key" "0" "$(bh list >/dev/null 2>&1; echo $?)"
+check "install survives a manifest with no entries key" "0" \
+  "$(bh install productivity/dream --force >/dev/null 2>&1; echo $?)"
+
+# An unparseable manifest is recovered from, not fatal — but it must warn.
+echo 'not json' > "$HOME/.claude/bluehoodie/installed.json"
+err=$(bh list 2>&1 >/dev/null)
+has "corrupt manifest warns on stderr" \
+  "bluehoodie: $HOME/.claude/bluehoodie/installed.json is unreadable — treating nothing as installed" "$err"
+check "list still exits 0 on a corrupt manifest" "0" "$(bh list >/dev/null 2>&1; echo $?)"
 
 [ "$fail" -eq 0 ] && printf '\nall checks passed\n' || printf '\nFAILURES\n'
 exit "$fail"

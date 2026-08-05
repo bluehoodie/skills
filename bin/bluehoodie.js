@@ -54,7 +54,13 @@ function pluginVersion (plugin) {
 }
 
 function readManifest () {
-  try { return JSON.parse(fs.readFileSync(MANIFEST, 'utf8')) } catch {
+  let raw
+  try { raw = fs.readFileSync(MANIFEST, 'utf8') } catch { return { package: PKG.version, entries: {} } }
+  try {
+    const m = JSON.parse(raw)
+    return { package: m.package, entries: m.entries || {} }
+  } catch {
+    process.stderr.write(`bluehoodie: ${MANIFEST} is unreadable — treating nothing as installed\n`)
     return { package: PKG.version, entries: {} }
   }
 }
@@ -81,7 +87,7 @@ function list () {
     const shipped = pluginVersion(p)
     console.log(`${p} ${shipped}`)
     for (const it of contents(p)) {
-      const e = m.entries[it.name]
+      const e = m.entries[key(it)]
       let mark = ''
       if (e && e.plugin === p) {
         mark = e.version === shipped
@@ -93,6 +99,8 @@ function list () {
   }
   console.log(`\nrunning bluehoodie ${PKG.version}`)
 }
+
+function key (item) { return `${item.type}:${item.name}` }
 
 function dest (item) {
   return item.type === 'skill'
@@ -116,7 +124,7 @@ function install (spec, force) {
 
   for (const item of items) {
     const target = dest(item)
-    const owned = m.entries[item.name]
+    const owned = m.entries[key(item)]
     if (fs.existsSync(target) && !force && (!owned || owned.plugin !== plugin)) {
       die(`${target} already exists and was not installed by bluehoodie.\n` +
           '  Move it aside, or re-run with --force.')
@@ -130,7 +138,7 @@ function install (spec, force) {
     fs.mkdirSync(path.dirname(target), { recursive: true })
     fs.rmSync(target, { recursive: true, force: true })
     fs.cpSync(source(plugin, item), target, { recursive: true })
-    m.entries[item.name] = { type: item.type, plugin, version }
+    m.entries[key(item)] = { type: item.type, plugin, version }
     console.log(`  ${target}`)
   }
   writeManifest(m)
