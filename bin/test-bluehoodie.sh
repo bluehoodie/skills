@@ -252,9 +252,32 @@ check "remove of an orphaned entry exits clean" "0" \
   "$(node "$ORPHANROOT/bin/bluehoodie.js" remove orphan >/dev/null 2>&1; echo $?)"
 absent "the orphaned skill is deleted despite being gone from the shipped tree" "$HOME/.claude/skills/gone"
 absent "the support dir goes with the orphaned entry" "$HOME/.claude/bluehoodie/orphan"
-check "the orphaned manifest entry is gone" "false" \
-  "$(node -p "'skill:gone' in require('$HOME/.claude/bluehoodie/installed.json').entries" 2>/dev/null || echo false)"
+present "the manifest file still exists after removing the orphaned entry" "$HOME/.claude/bluehoodie/installed.json"
+check "the orphaned manifest entry is gone" "0" \
+  "$(node -p "Object.keys(require('$HOME/.claude/bluehoodie/installed.json').entries).length")"
 rm -rf "$ORPHANROOT"
+
+# The key, not the value, decides type: a hand-written manifest where they
+# disagree must be resolved by the key, since that's the point of keying
+# entries "${type}:${name}" in the first place.
+rm -rf "$HOME/.claude"
+mkdir -p "$HOME/.claude/skills/keytest" "$HOME/.claude/bluehoodie"
+echo 'skill' > "$HOME/.claude/skills/keytest/SKILL.md"
+node -e '
+const fs = require("fs")
+const [, manifestPath] = process.argv
+const m = { package: "0.0.0", entries: { "skill:keytest": { type: "command", plugin: "keydisagree", version: "1.0.0" } } }
+fs.writeFileSync(manifestPath, JSON.stringify(m, null, 2) + "\n")
+' "$HOME/.claude/bluehoodie/installed.json"
+
+KEYROOT=$(mktemp -d)
+mkdir -p "$KEYROOT/bin" "$KEYROOT/plugins/keydisagree"
+cp "$CLI" "$KEYROOT/bin/bluehoodie.js"
+echo '{"version":"0.0.1"}' > "$KEYROOT/package.json"
+
+node "$KEYROOT/bin/bluehoodie.js" remove keydisagree >/dev/null
+absent "a key/value type disagreement is resolved by the key, not the value" "$HOME/.claude/skills/keytest"
+rm -rf "$KEYROOT"
 
 # The protection the manifest-as-source-of-paths design now needs: a crafted
 # manifest key must never let rmSync escape ~/.claude. One entry uses "../"

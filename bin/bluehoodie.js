@@ -184,7 +184,11 @@ function remove (spec) {
 
   const m = readManifest()
   const owned = Object.entries(m.entries)
-    .map(([k, e]) => ({ key: k, type: e.type, name: k.slice(k.indexOf(':') + 1), plugin: e.plugin }))
+    .filter(([, e]) => e && typeof e === 'object')
+    // The key is authoritative for type as well as name — it's why entries
+    // are keyed "${type}:${name}" in the first place. Reading type from the
+    // value would let a key/value disagreement delete against the wrong kind.
+    .map(([k, e]) => ({ key: k, type: k.slice(0, k.indexOf(':')), name: k.slice(k.indexOf(':') + 1), plugin: e.plugin }))
     .filter(i => i.plugin === plugin && (!name || i.name === name))
 
   if (!owned.length) die(`nothing installed by bluehoodie matches ${spec}`)
@@ -195,6 +199,11 @@ function remove (spec) {
     }
     const resolved = path.resolve(dest(item))
     const allowed = path.join(CLAUDE, item.type === 'skill' ? 'skills' : 'commands')
+    // ponytail: string comparison, not realpath — a symlinked ~/.claude/skills
+    // would pass. Not reachable from manifest content alone, and realpath
+    // costs a syscall on every remove for an attack that already needs write
+    // access to ~/.claude. Upgrade to realpath if ~/.claude ever becomes
+    // shared or symlinked.
     if (path.dirname(resolved) !== allowed) {
       die(`refusing to remove ${resolved} — outside ${allowed}`)
     }
