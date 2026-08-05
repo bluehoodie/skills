@@ -26,12 +26,13 @@ List the projects that need consolidating:
 bash "${CLAUDE_PLUGIN_ROOT}/scripts/survey.sh" list 10
 ```
 
-The literal token `${CLAUDE_PLUGIN_ROOT}`, braces included, must appear in
-this file exactly as written — the harness substitutes it for an absolute
-path before the prompt reaches the model. It is **not** an environment
-variable: the bare form `$CLAUDE_PLUGIN_ROOT` and the defaulted form
-`${CLAUDE_PLUGIN_ROOT:-anything}` both silently expand to an empty string
-instead, and it must never be referenced inside `survey.sh`, where no
+The path in that command is filled in before the prompt reaches the model —
+either by the plugin loader, which substitutes the plugin-root placeholder
+above, or by `bluehoodie install`, which writes an absolute path in its
+place. Either way it arrives correct; never edit it. It is **not** an
+environment variable: the bare form `$CLAUDE_PLUGIN_ROOT` and the defaulted
+form `${CLAUDE_PLUGIN_ROOT:-anything}` both silently expand to an empty
+string instead, and it must never be referenced inside `survey.sh`, where no
 substitution happens at all.
 
 Each line is a project directory. If the output is empty, say
