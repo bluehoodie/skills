@@ -27,13 +27,12 @@ bash "${CLAUDE_PLUGIN_ROOT}/scripts/survey.sh" list 10
 ```
 
 The path in that command is filled in before the prompt reaches the model —
-either by the plugin loader, which substitutes the plugin-root placeholder
-above, or by `bluehoodie install`, which writes an absolute path in its
-place. Either way it arrives correct; never edit it. It is **not** an
-environment variable: the bare form `$CLAUDE_PLUGIN_ROOT` and the defaulted
-form `${CLAUDE_PLUGIN_ROOT:-anything}` both silently expand to an empty
-string instead, and it must never be referenced inside `survey.sh`, where no
-substitution happens at all.
+either by the plugin loader, or by `bluehoodie install`, which writes an
+absolute path in its place. Either way it arrives correct; never edit it, and
+never rewrite it as a shell variable: the bare form `$CLAUDE_PLUGIN_ROOT` and
+the defaulted form `${CLAUDE_PLUGIN_ROOT:-anything}` are not environment
+variables and both silently expand to an empty string. The path must never be
+referenced inside `survey.sh`, where no substitution happens at all.
 
 Each line is a project directory. If the output is empty, say
 "Memory is clean — nothing to consolidate" and stop. Do not invent work.
