@@ -77,3 +77,37 @@ version bump, where the published artifact silently stops matching the repo.
 npm pack --dry-run          # confirm plugins/ is in the tarball
 bash bin/test-bluehoodie.sh # end-to-end install/remove against a temp HOME
 ```
+
+## Why the installer works the way it does
+
+Four decisions in `bin/bluehoodie.js` that look arbitrary and are not. Change them
+only with these in mind.
+
+**It rewrites `${CLAUDE_PLUGIN_ROOT}`.** That token is substituted by Claude Code's
+plugin loader. Nothing substitutes it for a loose skill in `~/.claude/skills/`, where
+it resolves to an empty string — so `dream` would silently try to run
+`/scripts/survey.sh`. Install copies the plugin's `scripts/` to
+`~/.claude/bluehoodie/<plugin>/` and rewrites the token to that absolute path. This
+is why a hand-rolled `cp -r` is not equivalent: it passes every "the file exists"
+check and still ships a broken skill.
+
+**The manifest keys entries `<type>:<name>`, not by bare name.** A plugin may legally
+hold a `dream` skill and a `dream.md` command; they install to different paths, and a
+flat key can only record one, orphaning the other.
+
+**`remove` derives its targets from the manifest, then checks containment.** Deleting
+only what the manifest claims is what stops it touching a `~/.claude/skills/dream/`
+that came from anywhere else. But because the manifest is the path source, a crafted
+or corrupt one must not be able to escape — hence the explicit check that the target's
+parent is exactly `~/.claude/skills` or `~/.claude/commands`. Deleting that check is
+not a simplification: without it, a hand-edited manifest deletes files outside
+`~/.claude`. `bin/test-bluehoodie.sh` covers traversal, absolute paths, and unknown
+types.
+
+**It does not detect a duplicate marketplace install.** Detection would mean reading
+`~/.claude/plugins/installed_plugins.json`, which is Claude Code's private state —
+already at schema `version: 2`, keyed by a marketplace name whoever added it chose.
+It would fail open, fail noisy, and rot. The duplicate is harmless anyway: plugin
+skills are namespaced (`productivity:dream`), user-level ones are bare (`dream`). The
+README says the npm path is an alternative, not a supplement; that is the whole
+mitigation.

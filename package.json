@@ -1,13 +1,34 @@
 {
   "name": "bluehoodie",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Install Colin Dickson's Claude Code skills and commands without a plugin marketplace.",
-  "bin": { "bluehoodie": "bin/bluehoodie.js" },
-  "files": ["bin/bluehoodie.js", "plugins"],
-  "engines": { "node": ">=20" },
+  "bin": {
+    "bluehoodie": "bin/bluehoodie.js"
+  },
+  "files": [
+    "bin/bluehoodie.js",
+    "plugins"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
   "license": "MIT",
-  "author": { "name": "Colin Dickson", "url": "https://github.com/bluehoodie" },
+  "author": {
+    "name": "Colin Dickson",
+    "url": "https://github.com/bluehoodie"
+  },
   "homepage": "https://github.com/bluehoodie/skills",
-  "repository": { "type": "git", "url": "git+https://github.com/bluehoodie/skills.git" },
-  "keywords": ["claude", "claude-code", "skills", "plugins"]
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/bluehoodie/skills.git"
+  },
+  "keywords": [
+    "claude",
+    "claude-code",
+    "skills",
+    "plugins"
+  ],
+  "dependencies": {
+    "bluehoodie": "^0.1.0"
+  }
 }

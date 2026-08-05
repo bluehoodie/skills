@@ -7,6 +7,10 @@ Claude Code skills and commands for non-code workflow.
 /plugin install productivity@bluehoodie
 ```
 
+Blocked from adding third-party marketplaces? `npx bluehoodie install productivity`
+copies these into `~/.claude/` instead — see
+[the alternative install path](../../README.md#without-a-marketplace).
+
 ---
 
 # Set up nightly memory consolidation
