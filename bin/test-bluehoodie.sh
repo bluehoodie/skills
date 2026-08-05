@@ -220,8 +220,74 @@ check "the manifest is empty afterwards" "0" \
 # deleted, however much its name looks like one of ours.
 mkdir -p "$HOME/.claude/skills/dream"
 echo "not ours" > "$HOME/.claude/skills/dream/SKILL.md"
+unmanagederr=$(bh remove productivity/dream 2>&1 >/dev/null)
 check "remove refuses an unmanaged path" "1" "$(bh remove productivity/dream >/dev/null 2>&1; echo $?)"
+has "the refusal names the unmanaged spec, not just any exit 1" \
+  "bluehoodie: nothing installed by bluehoodie matches productivity/dream" "$unmanagederr"
 check "the unmanaged file survives" "not ours" "$(cat "$HOME/.claude/skills/dream/SKILL.md")"
+
+# --- Task 4 review: the manifest, not the shipped tree, is the source of what
+# gets deleted. A skill later renamed or dropped from a release must still be
+# removable, and its manifest entry must not permanently pin the plugin's
+# support dir. Built under its own throwaway CLI + plugins/ tree, same
+# pattern as the symlink fixture above — never touches the repo's real
+# plugins/.
+rm -rf "$HOME/.claude"
+ORPHANROOT=$(mktemp -d)
+mkdir -p "$ORPHANROOT/bin" "$ORPHANROOT/plugins/orphan/skills/gone" \
+  "$ORPHANROOT/plugins/orphan/scripts" "$ORPHANROOT/plugins/orphan/.claude-plugin"
+cp "$CLI" "$ORPHANROOT/bin/bluehoodie.js"
+echo '{"version":"0.0.1"}' > "$ORPHANROOT/package.json"
+echo '{"version":"1.0.0"}' > "$ORPHANROOT/plugins/orphan/.claude-plugin/plugin.json"
+echo 'skill' > "$ORPHANROOT/plugins/orphan/skills/gone/SKILL.md"
+echo 'note' > "$ORPHANROOT/plugins/orphan/scripts/note.txt"
+
+node "$ORPHANROOT/bin/bluehoodie.js" install orphan >/dev/null
+present "orphan fixture installed before the shipped skill is dropped" "$HOME/.claude/skills/gone/SKILL.md"
+
+# Simulate a later release that renames or drops the skill from the shipped tree.
+rm -rf "$ORPHANROOT/plugins/orphan/skills/gone"
+
+check "remove of an orphaned entry exits clean" "0" \
+  "$(node "$ORPHANROOT/bin/bluehoodie.js" remove orphan >/dev/null 2>&1; echo $?)"
+absent "the orphaned skill is deleted despite being gone from the shipped tree" "$HOME/.claude/skills/gone"
+absent "the support dir goes with the orphaned entry" "$HOME/.claude/bluehoodie/orphan"
+check "the orphaned manifest entry is gone" "false" \
+  "$(node -p "'skill:gone' in require('$HOME/.claude/bluehoodie/installed.json').entries" 2>/dev/null || echo false)"
+rm -rf "$ORPHANROOT"
+
+# The protection the manifest-as-source-of-paths design now needs: a crafted
+# manifest key must never let rmSync escape ~/.claude. One entry uses "../"
+# traversal, one uses an absolute-looking name; both are aimed at the same
+# real file living outside the temp $HOME.
+rm -rf "$HOME/.claude"
+VICTIM=$(mktemp -d)
+echo "precious external content" > "$VICTIM/secret.txt"
+victimbefore=$(cat "$VICTIM/secret.txt")
+RELPATH="${VICTIM#/}/secret.txt"
+UPDOTS="../../../../../../../../../../../../../../../../../../../../"
+
+mkdir -p "$HOME/.claude/bluehoodie"
+node -e '
+const fs = require("fs")
+const [, manifestPath, trav, abs] = process.argv
+const m = { package: "0.0.0", entries: {} }
+m.entries["skill:" + trav] = { type: "skill", plugin: "escape", version: "1.0.0" }
+m.entries["skill:" + abs] = { type: "skill", plugin: "escape", version: "1.0.0" }
+fs.writeFileSync(manifestPath, JSON.stringify(m, null, 2) + "\n")
+' "$HOME/.claude/bluehoodie/installed.json" "${UPDOTS}${RELPATH}" "$VICTIM/secret.txt"
+
+ESCROOT=$(mktemp -d)
+mkdir -p "$ESCROOT/bin" "$ESCROOT/plugins/escape"
+cp "$CLI" "$ESCROOT/bin/bluehoodie.js"
+echo '{"version":"0.0.1"}' > "$ESCROOT/package.json"
+
+escout=$(node "$ESCROOT/bin/bluehoodie.js" remove escape 2>&1)
+escstatus=$?
+check "a crafted manifest entry does not exit 0" "1" "$escstatus"
+has "the refusal names the containment rule" "refusing to remove" "$escout"
+check "the outside victim survives the traversal attempt" "$victimbefore" "$(cat "$VICTIM/secret.txt")"
+rm -rf "$ESCROOT" "$VICTIM"
 
 [ "$fail" -eq 0 ] && printf '\nall checks passed\n' || printf '\nFAILURES\n'
 exit "$fail"

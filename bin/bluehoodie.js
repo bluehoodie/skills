@@ -171,21 +171,40 @@ function install (spec, force) {
   writeManifest(m)
 }
 
+// Deletion targets come from the manifest, not from the shipped plugin tree —
+// a shipped skill that was later renamed or dropped must still be removable,
+// and its manifest entry must not permanently pin the plugin's support dir.
+// That makes the manifest the actual source of paths to delete, so every
+// entry is validated for containment under ~/.claude/skills or
+// ~/.claude/commands before anything is deleted: a crafted key like
+// "skill:../../../outside/victim" must never reach rmSync.
 function remove (spec) {
-  const { plugin, items } = resolve(spec)
+  const [plugin, name] = String(spec).split('/')
+  if (!plugins().includes(plugin)) die(`unknown plugin: ${plugin}`)
+
   const m = readManifest()
-  const owned = items.filter(i => {
-    const e = m.entries[key(i)]
-    return e && e.plugin === plugin
-  })
+  const owned = Object.entries(m.entries)
+    .map(([k, e]) => ({ key: k, type: e.type, name: k.slice(k.indexOf(':') + 1), plugin: e.plugin }))
+    .filter(i => i.plugin === plugin && (!name || i.name === name))
 
   if (!owned.length) die(`nothing installed by bluehoodie matches ${spec}`)
 
-  for (const item of owned) {
-    const target = dest(item)
-    fs.rmSync(target, { recursive: true, force: true })
-    delete m.entries[key(item)]
-    console.log(`  ${target}`)
+  const targets = owned.map(item => {
+    if (item.type !== 'skill' && item.type !== 'command') {
+      die(`refusing to remove ${item.key} — unknown type ${item.type}`)
+    }
+    const resolved = path.resolve(dest(item))
+    const allowed = path.join(CLAUDE, item.type === 'skill' ? 'skills' : 'commands')
+    if (path.dirname(resolved) !== allowed) {
+      die(`refusing to remove ${resolved} — outside ${allowed}`)
+    }
+    return { item, resolved }
+  })
+
+  for (const { item, resolved } of targets) {
+    fs.rmSync(resolved, { recursive: true, force: true })
+    delete m.entries[item.key]
+    console.log(`  ${resolved}`)
   }
 
   if (!Object.values(m.entries).some(e => e.plugin === plugin)) {
