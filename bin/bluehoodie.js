@@ -121,8 +121,9 @@ function installScripts (plugin) {
   fs.rmSync(target, { recursive: true, force: true })
   fs.mkdirSync(path.dirname(target), { recursive: true })
   fs.cpSync(src, target, { recursive: true })
-  for (const f of fs.readdirSync(target)) {
-    if (f.endsWith('.sh')) fs.chmodSync(path.join(target, f), 0o755)
+  for (const f of fs.readdirSync(target, { recursive: true })) {
+    const p = path.join(target, f)
+    if (f.endsWith('.sh') && fs.lstatSync(p).isFile()) fs.chmodSync(p, 0o755)
   }
   console.log(`  ${target}`)
 }
@@ -135,7 +136,7 @@ function rewrite (target, pluginRoot) {
     ? fs.readdirSync(target, { recursive: true }).map(f => path.join(target, f))
     : [target]
   for (const f of files) {
-    if (!f.endsWith('.md') || !fs.statSync(f).isFile()) continue
+    if (!f.endsWith('.md') || !fs.lstatSync(f).isFile()) continue
     const before = fs.readFileSync(f, 'utf8')
     const after = before.split('${CLAUDE_PLUGIN_ROOT}').join(pluginRoot)
     if (after !== before) fs.writeFileSync(f, after)

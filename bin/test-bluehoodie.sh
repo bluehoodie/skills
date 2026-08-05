@@ -154,7 +154,7 @@ present "the rewritten path resolves" "$rewritten"
 
 # The rewrite reaches frontmatter, not just the body.
 has "allowed-tools frontmatter is rewritten" "$HOME/.claude/bluehoodie/productivity" \
-  "$(head -12 "$HOME/.claude/skills/dream/SKILL.md")"
+  "$(sed -n '/^---$/,/^---$/p' "$HOME/.claude/skills/dream/SKILL.md")"
 
 # The other half of the invariant: a token-bearing file must NOT install
 # byte-identical to source — that would mean the rewrite silently didn't run.
@@ -168,6 +168,35 @@ absent "no scripts dir means no support dir" "$HOME/.claude/bluehoodie/engineeri
 
 # A skill directory's extra files come along, not just its SKILL.md.
 present "extra skill files are copied" "$HOME/.claude/skills/adversarial-review/critic-agent.md"
+
+# --- Task 3 review: rewrite must not follow symlinks. statSync throws on a
+# dangling one (aborting install mid-way, before writeManifest — an untracked
+# partial install) and follows a live one to its target, rewriting a file
+# OUTSIDE $HOME. Built under a temp copy of the CLI + throwaway plugins/ tree,
+# same pattern as the same-name fixture above — never touches the repo's real
+# plugins/. The symlink target lives in its own tempdir, outside $HOME.
+SYMFIXROOT=$(mktemp -d)
+SYMOUT=$(mktemp -d)
+mkdir -p "$SYMFIXROOT/bin" "$SYMFIXROOT/plugins/fixture/skills/linky" "$SYMFIXROOT/plugins/fixture/.claude-plugin"
+cp "$CLI" "$SYMFIXROOT/bin/bluehoodie.js"
+echo '{"version":"0.0.1"}' > "$SYMFIXROOT/package.json"
+echo '{"version":"1.0.0"}' > "$SYMFIXROOT/plugins/fixture/.claude-plugin/plugin.json"
+echo 'skill' > "$SYMFIXROOT/plugins/fixture/skills/linky/SKILL.md"
+# Named so the live link sorts and is processed before the dangling one: a
+# buggy statSync would rewrite-through the live link first (proving that
+# failure mode on its own) before the dangling link's ENOENT aborts the run —
+# rather than the dangling link masking the live one by crashing first.
+printf 'external content, token intact: ${CLAUDE_PLUGIN_ROOT}\n' > "$SYMOUT/external.md"
+ln -s "$SYMOUT/external.md" "$SYMFIXROOT/plugins/fixture/skills/linky/a-live.md"
+ln -s "$SYMFIXROOT/nonexistent-target.md" "$SYMFIXROOT/plugins/fixture/skills/linky/z-dangling.md"
+symbefore=$(cat "$SYMOUT/external.md")
+
+check "install survives a dangling and a live symlink" "0" \
+  "$(node "$SYMFIXROOT/bin/bluehoodie.js" install fixture >/dev/null 2>&1; echo $?)"
+symmanifest=$(cat "$HOME/.claude/bluehoodie/installed.json")
+has "the manifest is still written past the symlinked skill" '"skill:linky"' "$symmanifest"
+check "the out-of-tree symlink target is untouched" "$symbefore" "$(cat "$SYMOUT/external.md")"
+rm -rf "$SYMFIXROOT" "$SYMOUT"
 
 [ "$fail" -eq 0 ] && printf '\nall checks passed\n' || printf '\nFAILURES\n'
 exit "$fail"
