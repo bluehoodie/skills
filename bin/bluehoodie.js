@@ -171,6 +171,33 @@ function install (spec, force) {
   writeManifest(m)
 }
 
+function remove (spec) {
+  const { plugin, items } = resolve(spec)
+  const m = readManifest()
+  const owned = items.filter(i => {
+    const e = m.entries[key(i)]
+    return e && e.plugin === plugin
+  })
+
+  if (!owned.length) die(`nothing installed by bluehoodie matches ${spec}`)
+
+  for (const item of owned) {
+    const target = dest(item)
+    fs.rmSync(target, { recursive: true, force: true })
+    delete m.entries[key(item)]
+    console.log(`  ${target}`)
+  }
+
+  if (!Object.values(m.entries).some(e => e.plugin === plugin)) {
+    const support = path.join(SUPPORT, plugin)
+    if (fs.existsSync(support)) {
+      fs.rmSync(support, { recursive: true, force: true })
+      console.log(`  ${support}`)
+    }
+  }
+  writeManifest(m)
+}
+
 function main (argv) {
   const force = argv.includes('--force')
   const [cmd, spec] = argv.filter(a => !a.startsWith('--'))

@@ -198,5 +198,30 @@ has "the manifest is still written past the symlinked skill" '"skill:linky"' "$s
 check "the out-of-tree symlink target is untouched" "$symbefore" "$(cat "$SYMOUT/external.md")"
 rm -rf "$SYMFIXROOT" "$SYMOUT"
 
+# --- Task 4: remove
+rm -rf "$HOME/.claude"
+bh install productivity >/dev/null
+
+out=$(bh remove productivity/dream)
+absent "remove deletes the skill" "$HOME/.claude/skills/dream"
+has "remove prints the path it deleted" "$HOME/.claude/skills/dream" "$out"
+present "remove leaves the plugin's other skills alone" "$HOME/.claude/skills/context-tune/SKILL.md"
+present "the support dir survives while siblings remain" \
+  "$HOME/.claude/bluehoodie/productivity/scripts/survey.sh"
+
+bh remove productivity >/dev/null
+absent "remove <plugin> takes the commands" "$HOME/.claude/commands/dream-status.md"
+absent "remove <plugin> takes the last skill" "$HOME/.claude/skills/context-tune"
+absent "the support dir goes with the last entry" "$HOME/.claude/bluehoodie/productivity"
+check "the manifest is empty afterwards" "0" \
+  "$(node -p "Object.keys(require('$HOME/.claude/bluehoodie/installed.json').entries).length")"
+
+# The rule that protects user files: a path bluehoodie did not install is never
+# deleted, however much its name looks like one of ours.
+mkdir -p "$HOME/.claude/skills/dream"
+echo "not ours" > "$HOME/.claude/skills/dream/SKILL.md"
+check "remove refuses an unmanaged path" "1" "$(bh remove productivity/dream >/dev/null 2>&1; echo $?)"
+check "the unmanaged file survives" "not ours" "$(cat "$HOME/.claude/skills/dream/SKILL.md")"
+
 [ "$fail" -eq 0 ] && printf '\nall checks passed\n' || printf '\nFAILURES\n'
 exit "$fail"
