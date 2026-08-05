@@ -7,43 +7,27 @@ Claude Code skills and commands for non-code workflow.
 /plugin install productivity@bluehoodie
 ```
 
-## Skills
+---
 
-- [context-tune](./skills/context-tune/SKILL.md) — audit and rightsize a project's
-  CLAUDE.md files, memories, and skills against the Claude 5 context-engineering
-  principles.
-- [dream](./skills/dream/SKILL.md) — machine-wide memory consolidation. Surveys every
-  project for new session activity, then merges, deletes and reindexes each one's
-  memories, committing every pass to git. Deletion is a normal outcome, not an
-  error: a pass that finds a memory stale or superseded may remove the file, and
-  it errs toward keeping anything it cannot verify. Every pass is a git commit,
-  so nothing it removes is unrecoverable — see *Recovering from a bad dream*
-  below.
+# Set up nightly memory consolidation
 
-## Commands
+This is what most people install this plugin for. Three steps, once.
 
-- [dream-status](./commands/dream-status.md) — which projects need a dream, and the
-  state of the memory stores.
-- [dream-restore](./commands/dream-restore.md) — undo a dream by reverting that
-  project's memory commit.
+## 1. Install the plugin
 
-## Running dream on a schedule
+The two commands above, in Claude Code.
 
-`/productivity:dream` is a manual command — run it at the end of a working stretch
-and it sweeps every project that has seen activity since its last pass.
+## 2. Create a routine in the Claude Desktop app
 
-On the very first run there is no "last pass", so dream starts from a seven-day
-baseline: projects you have worked in during the last week are consolidated,
-older ones are marked as already seen. That keeps a fresh install from
-consolidating years of history in one go.
+Open Claude Desktop → **Settings → Routines → New routine**, and set:
 
-To make it recurring, create a scheduled routine in the Claude Desktop app.
-Nothing is installed on your machine by this plugin; the schedule lives in
-Claude, not in launchd or cron.
+| Field | Value |
+|---|---|
+| **Schedule** | Daily, `03:17` — any hour your Mac is awake and you are not working |
+| **Working directory** | Your home directory. **Not a project directory** — see the warning below |
+| **Mode** | Local agent mode |
 
-A routine prompt has to stand on its own — the run has no memory of the
-conversation that created it — so give it the whole instruction rather than just
-the command:
+## 3. Paste this as the routine's prompt
 
 ```
 Consolidate my Claude Code memories by running /productivity:dream.
@@ -61,36 +45,89 @@ If any project reports deletions, say that /productivity:dream-restore can undo
 that pass.
 ```
 
-Nightly is a reasonable cadence, at an hour your machine is awake and you are
-not working — pick something off the hour, like 03:17, rather than 03:00.
+That's it. Every night it sweeps every project you have worked in, tidies each
+one's memories, and commits the result so you can undo it.
 
-Three things worth knowing before you schedule it:
+> **Two things that will bite you if you skip them.**
+>
+> **The routine must run in local agent mode.** A cloud run cannot see
+> `~/.claude/projects` and will cheerfully report that every project is clean.
+>
+> **Point it at your home directory, not a project.** Dream never consolidates
+> the project it is running from — that session is still writing its own
+> transcript, so it would look permanently dirty. Run the routine from a real
+> project and that project's memories are never consolidated, silently, forever.
 
-- **It must be a local-agent-mode routine.** A cloud run has no
-  `~/.claude/projects` to read and will report every project clean.
-- **Point the routine at a directory you do not work in** — `$HOME` is the
-  obvious choice. A dream never consolidates the project it is running from,
-  because that session is still writing its own transcript and would be dirty
-  forever. Run the routine from a real project and you silently starve that
-  project.
-- **A missed run costs nothing.** If the machine is asleep the pass does not
-  happen, and the next one covers the wider window. Markers are per-project
-  high-water marks, not a schedule.
+## Checking on it
 
-Each pass consolidates at most 10 projects. Any beyond that stay dirty and are
-named in the run summary, so a long backlog drains over several runs rather than
-being dropped.
+```
+/productivity:dream-status
+```
 
-## Recovering from a bad dream
+Shows which projects are due, how stale each one is, and how many memories each
+holds. Read-only.
 
-Every memory directory a dream touches becomes a git repository, and every pass is
-one commit. To see what last night changed:
+## Undoing a pass
+
+```
+/productivity:dream-restore
+```
+
+Every memory directory dream touches is a git repository and every pass is one
+commit, so nothing it removes is lost. The command lists recent passes — three
+per project — and you pick which project and which pass to undo. Memories
+written *after* that pass are kept: a revert undoes that commit, not everything
+since.
+
+To look before you leap:
 
 ```bash
 git -C ~/.claude/projects/<slug>/memory log -p
 ```
 
-To undo it, run `/productivity:dream-restore`. It lists recent dream commits across
-your memory repositories — three passes per project — and you choose which project
-and which pass to undo. Memories written after that dream are preserved: a revert
-undoes that commit, not everything since.
+---
+
+# What dream actually does
+
+Each pass surveys every project under `~/.claude/projects/`, and for each one
+that has seen session activity since its last pass, it merges duplicate
+memories, deletes stale ones, rewrites what has drifted, and rebuilds that
+project's `MEMORY.md` index.
+
+**Deleting is normal, not an error.** A pass that finds a memory stale or
+superseded removes the file, and errs toward keeping anything it cannot verify —
+memories about you and your preferences are never deleted for failing a
+code check, because they were never claims about code. Every pass is a git
+commit, so nothing it removes is unrecoverable.
+
+You can also just run `/productivity:dream` by hand whenever you like. The
+routine is only a convenience; it is the same pass.
+
+**On the very first run** there is no "last pass", so dream starts from a
+seven-day baseline: projects you worked in during the last week get
+consolidated, older ones are marked as already seen. A fresh install will not
+chew through years of history.
+
+**At most 10 projects per pass.** Any beyond that are named in the summary and
+picked up next run, so a backlog drains over several nights instead of being
+dropped.
+
+**A missed run costs nothing.** If the machine is asleep the pass just does not
+happen, and the next one covers the wider window.
+
+---
+
+## Skills
+
+- [dream](./skills/dream/SKILL.md) — machine-wide memory consolidation, described
+  above.
+- [context-tune](./skills/context-tune/SKILL.md) — audit and rightsize a project's
+  CLAUDE.md files, memories, and skills against the Claude 5 context-engineering
+  principles.
+
+## Commands
+
+- [dream-status](./commands/dream-status.md) — which projects need a dream, and the
+  state of the memory stores.
+- [dream-restore](./commands/dream-restore.md) — undo a dream by reverting that
+  project's memory commit.
