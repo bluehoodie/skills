@@ -75,9 +75,12 @@ present "install <plugin> lands context-tune" "$HOME/.claude/skills/context-tune
 
 # Reinstalling something bluehoodie owns is an upgrade, not an error.
 check "reinstall succeeds" "0" "$(bh install productivity/dream >/dev/null 2>&1; echo $?)"
+# dream/SKILL.md carries ${CLAUDE_PLUGIN_ROOT} and is deliberately rewritten on
+# install, so it is not byte-identical to source (see Task 3 below) — assert
+# byte-equality on context-tune instead, a same-plugin skill with no token.
 check "reinstall lands the shipped content" \
-  "$(cat "$REPO/plugins/productivity/skills/dream/SKILL.md")" \
-  "$(cat "$HOME/.claude/skills/dream/SKILL.md")"
+  "$(cat "$REPO/plugins/productivity/skills/context-tune/SKILL.md")" \
+  "$(cat "$HOME/.claude/skills/context-tune/SKILL.md")"
 
 # A path bluehoodie does not own is never clobbered.
 mkdir -p "$HOME/.claude/skills/adversarial-review"
@@ -138,9 +141,12 @@ if [ -x "$HOME/.claude/bluehoodie/productivity/scripts/survey.sh" ]; then
 else printf 'FAIL survey.sh is not executable\n'; fail=1; fi
 
 # The check that matters most: a plain cp -r passes every "file exists" test
-# above and still ships a skill that cannot find its own script.
-leaked=$(grep -rl 'CLAUDE_PLUGIN_ROOT' "$HOME/.claude/skills" "$HOME/.claude/commands" 2>/dev/null)
-check "no installed file still contains the raw token" "" "$leaked"
+# above and still ships a skill that cannot find its own script. The needle is
+# the exact braced token — the only form the plugin loader substitutes and the
+# only one that resolves to empty when nothing substitutes it. Prose that names
+# the bare variable or quotes it as a counter-example is harmless and stays.
+leaked=$(grep -rlF '${CLAUDE_PLUGIN_ROOT}' "$HOME/.claude/skills" "$HOME/.claude/commands" 2>/dev/null)
+check "no installed file still contains the braced token" "" "$leaked"
 
 # ...and the path it was rewritten to must actually resolve.
 rewritten=$(grep -oh '/[^" ]*/scripts/survey.sh' "$HOME/.claude/skills/dream/SKILL.md" | head -1)
@@ -149,6 +155,12 @@ present "the rewritten path resolves" "$rewritten"
 # The rewrite reaches frontmatter, not just the body.
 has "allowed-tools frontmatter is rewritten" "$HOME/.claude/bluehoodie/productivity" \
   "$(head -12 "$HOME/.claude/skills/dream/SKILL.md")"
+
+# The other half of the invariant: a token-bearing file must NOT install
+# byte-identical to source — that would mean the rewrite silently didn't run.
+if ! cmp -s "$REPO/plugins/productivity/skills/dream/SKILL.md" "$HOME/.claude/skills/dream/SKILL.md"; then
+  printf 'ok   the token-bearing skill is rewritten, not copied verbatim\n'
+else printf 'FAIL dream/SKILL.md installed byte-identical — rewrite did not run\n'; fail=1; fi
 
 # A plugin with no scripts/ dir must not grow an empty support dir.
 bh install engineering >/dev/null
