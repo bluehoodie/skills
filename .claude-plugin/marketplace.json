@@ -30,19 +30,6 @@
         "dream",
         "consolidation"
       ]
-    },
-    {
-      "name": "collective",
-      "source": "./plugins/collective",
-      "description": "Share Claude Code memories across a team through the repo \u2014 your settled team-worthy memories are assimilated out as pull requests, and you adapt the collective's in when you ask for them.",
-      "category": "productivity",
-      "keywords": [
-        "memory",
-        "team",
-        "sharing",
-        "knowledge",
-        "collective"
-      ]
     }
   ]
 }

@@ -60,26 +60,6 @@ Skills and commands for non-code workflow. `/plugin install productivity@bluehoo
 > Dream is based on a feature originally built into Claude Code, since disabled.
 > **If Anthropic ever re-enables it, this is deprecated in favour of theirs.**
 
-### [collective](./plugins/collective)
-
-Team memory sharing. Memories are written from one person's experience of a codebase, but
-most of what they record is not personal — and it currently dies in one laptop's
-`~/.claude`. This moves it into the repo, where distribution, review, and access
-control already exist. `/plugin install collective@bluehoodie`
-
-`<repo>/.collective-memory/` is the whole product. A `SessionEnd` hook scans your memories for
-credentials, asks whether each is team knowledge, and opens a pull request for the ones
-that are — only memories that have gone a day without being rewritten, so drafts stay
-home. Nothing comes back the other way until you ask:
-`/collective:adapt` copies the collective's memories in as ordinary files you own.
-
-- [adapt](./plugins/collective/commands/adapt.md) — take new or changed memories from the
-  collective into your own memory directory.
-- [status](./plugins/collective/commands/status.md) — what the collective holds, what is
-  settling, what is quarantined.
-- [reclaim](./plugins/collective/commands/reclaim.md) — review the memories the
-  credential scanner refused, and why.
-
 ## Contributing
 
 Repo conventions — where skills go, what has to stay in sync — are in
