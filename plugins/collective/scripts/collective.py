@@ -13,7 +13,7 @@ deliberately by a person running /collective:adapt. What lands from an adapt is
 theirs: an ordinary memory file their next dream owns like any other.
 
 Verbs:
-  assimilate  SessionEnd. Finds consolidated memories written since the last
+  assimilate  SessionEnd. Finds settled memories written since the last
               pass, scans them for credentials, redacts machine-specific detail,
               asks a model which are team knowledge, and opens a pull request.
               Detached. The collective absorbing the individual.
@@ -24,8 +24,9 @@ Verbs:
   status      Print what is shared, settling, individual, pending and quarantined.
   scan        Scan a file and print blockers; exit 1 if any. For CI and testing.
 
-Only memories a dream consolidation has already been over are assimilable — see
-candidates().
+Only memories that have settled — untouched long enough to count as durable —
+are assimilable; see candidates(). Nothing here requires a consolidation to
+have run.
 
 Environment:
   COLLECTIVE_SETTLE_HOURS         hours untouched before a memory is assimilable (24)
@@ -712,7 +713,7 @@ def assimilate(project, cwd):
             blocked[f.name] = ["rewrite reintroduced a blocked pattern"]
             continue
         # Recorded lineage beats the classifier's guess. classify() is shown
-        # corpus names and descriptions, never bodies, so once /dream has merged
+        # corpus names and descriptions, never bodies, so once /productivity:dream has merged
         # a pulled memory into a file of its own and renamed it there is nothing
         # left to match on — and the same fact lands in the corpus twice.
         target = lineage(f.read_text()) or v.get("extends") or f.stem
@@ -763,7 +764,7 @@ def assimilate(project, cwd):
 # The read path is a listing, nothing more. /collective:adapt writes the files the
 # person picks, as their own plain memories — no prefix, no read-only bit, no
 # managed block. Once written they are indistinguishable from ones they wrote,
-# which is the point: /dream then merges, prunes and rewrites them like any other.
+# which is the point: /productivity:dream then merges, deletes and rewrites them like any other.
 #
 # Keyed by content digest rather than a timestamp, for the same reason the
 # assimilation manifest is: a memory the team edited comes back as changed, and
@@ -793,7 +794,7 @@ def take(cwd, name):
     """The team memory rewritten as the reader's own file, ready to be written.
 
     Their copy is theirs: the team's sharedBy and promotedAt come off, and what
-    goes on is the one thing only they need — where it came from. /dream owns
+    goes on is the one thing only they need — where it came from. /productivity:dream owns
     the file from here and may merge and rename it, and when that copy is
     assimilated back, this is what tells assimilate which memory it descends from
     instead of leaving the classifier to guess from a name that has changed.

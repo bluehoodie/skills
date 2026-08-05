@@ -8,11 +8,13 @@ Plugins are split by what they are *for*, so users install only what they need:
 
 - `plugins/engineering/` — code work
 - `plugins/productivity/` — non-code workflow tools
-- `plugins/dream/` — memory consolidation; separate because it carries a `SessionStart`
+- `plugins/collective/` — team memory sharing; separate because it carries a `SessionEnd`
   hook, and background behaviour has to be opted into
 
-Add a new plugin only for a genuinely new category, or for something that carries a hook
-or script users must opt into. Everything else goes in `engineering` or `productivity`.
+Add a new plugin only for a genuinely new category, or for something that carries a
+hook — background behaviour a user must opt into. A `scripts/` directory is not by
+itself a reason: a helper a skill invokes when you run it is not background
+behaviour. Everything else goes in `engineering` or `productivity`.
 
 ## Anatomy of a plugin
 

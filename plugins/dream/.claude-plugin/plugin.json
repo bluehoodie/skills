@@ -1,14 +1,13 @@
 {
   "name": "dream",
-  "description": "Periodic memory consolidation — review, deduplication, pruning, and reindexing of Claude Code's file-based memory system.",
-  "version": "2.1.2",
+  "description": "DEPRECATED — moved into the productivity plugin. Install productivity@bluehoodie and uninstall this. Removed next release.",
+  "version": "3.0.0",
   "license": "MIT",
   "author": {
     "name": "Colin Dickson",
     "url": "https://github.com/bluehoodie"
   },
-  "homepage": "https://github.com/bluehoodie/skills/tree/main/plugins/dream",
-  "keywords": ["memory", "consolidation", "maintenance", "dream"],
-  "commands": "./commands/",
-  "skills": "./skills/"
+  "homepage": "https://github.com/bluehoodie/skills/tree/main/plugins/productivity",
+  "keywords": ["deprecated", "memory", "dream"],
+  "commands": "./commands/"
 }

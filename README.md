@@ -40,17 +40,24 @@ Skills and commands for non-code workflow. `/plugin install productivity@bluehoo
 - [context-tune](./plugins/productivity/skills/context-tune/SKILL.md) — audit and rightsize
   a project's CLAUDE.md files, memories, and skills against the Claude 5
   context-engineering principles.
+- [dream](./plugins/productivity/skills/dream/SKILL.md) — machine-wide memory
+  consolidation. Surveys every project for new session activity, then merges, deletes
+  and reindexes each one's memories, committing every pass to git. Run it yourself or
+  schedule it as a routine.
+- [dream-status](./plugins/productivity/commands/dream-status.md) — which projects need
+  a dream, and the state of the memory stores.
+- [dream-restore](./plugins/productivity/commands/dream-restore.md) — undo a dream by
+  reverting that project's memory commit.
 
+### dream (deprecated)
 
-### [dream](./plugins/dream)
+Memory consolidation moved into [productivity](./plugins/productivity). The `dream`
+plugin is now an empty stub that removes the `SessionStart` hook version 2.x
+installed; install `productivity@bluehoodie` and uninstall `dream@bluehoodie`. The
+entry is removed one release from now.
 
-Periodic memory consolidation. A `SessionStart` hook watches time and session gates, then
-runs a four-phase pass over Claude Code's auto-memory so it stays relevant instead of
-growing forever. `/plugin install dream@bluehoodie`
-
-Based on the dream feature originally built into Claude Code, but which is currently a disabled feature. This plugin is a recreation of that feature, with some improvements and changes to make it more useful.  
-
-**If Anthropic ever re-enables the dream feature in Claude Code, this plugin will be deprecated.**
+Based on the dream feature originally built into Claude Code, since disabled.
+**If Anthropic ever re-enables it, this is deprecated in favour of theirs.**
 
 ### [collective](./plugins/collective)
 

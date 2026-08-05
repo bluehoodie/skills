@@ -25,13 +25,16 @@
       "keywords": [
         "skills",
         "commands",
-        "productivity"
+        "productivity",
+        "memory",
+        "dream",
+        "consolidation"
       ]
     },
     {
       "name": "dream",
       "source": "./plugins/dream",
-      "description": "Periodic memory consolidation — review, deduplication, pruning, and reindexing of Claude Code's file-based memory system.",
+      "description": "DEPRECATED — moved into the productivity plugin. Install productivity@bluehoodie and uninstall this. Removed next release.",
       "category": "productivity",
       "keywords": [
         "memory",

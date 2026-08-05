@@ -16,7 +16,7 @@ injected into your memory directory behind your back.
 
 ```
    ~/.claude/projects/<slug>/memory/
-     clob-v2-order-signing.md     ← yours, written by you or by /dream
+     clob-v2-order-signing.md     ← yours, written by you or by /productivity:dream
              │
              │  ASSIMILATE — SessionEnd, once the memory has settled
              │  pull request, never main
@@ -30,7 +30,7 @@ injected into your memory directory behind your back.
              │  copied in as a normal 644 memory, frontmatter stripped
              ▼
    ~/.claude/projects/<slug>/memory/
-     grafana-tenant-split.md      ← yours now; /dream merges and prunes it
+     grafana-tenant-split.md      ← yours now; /productivity:dream merges and deletes it
 ```
 
 **Assimilate** (`assimilate`) runs detached at SessionEnd. It finds settled memories written
@@ -39,14 +39,14 @@ since the last pass and puts each through four gates.
 **Adapt** (`/collective:adapt`) runs when you run it. It lists the team memories that are
 new to you or have changed since you last took them, you pick, and the chosen ones
 land in your memory directory as ordinary files — no `team-` prefix, no `sharedBy`
-or `promotedAt` frontmatter, normal permissions. From then on they are yours: `/dream`
-merges, rewrites and prunes them like anything else you wrote. The one thing that
+or `promotedAt` frontmatter, normal permissions. From then on they are yours: `/productivity:dream`
+merges, rewrites and deletes them like anything else you wrote. The one thing that
 comes along is a `pulledFrom` line naming the memory it descends from, which is what
 lets it go home again as an edit rather than a duplicate.
 
 The obvious alternative is to do this the other way — a SessionStart hook mirroring
 the whole corpus in as chmod 444 `team-*.md` clones and rebuilding a managed block
-in `MEMORY.md`. That puts read-only files inside the one directory `/dream` exists
+in `MEMORY.md`. That puts read-only files inside the one directory `/productivity:dream` exists
 to rewrite, which is a latent bug, not merely extra machinery. Copies you own and
 can edit are the whole point.
 
@@ -88,12 +88,14 @@ still sits behind this one, so untyped memories get judged rather than waved thr
 
 ### collective does not require dream
 
-They are separate plugins and neither reads the other's state. `/dream` is
+Dream ships as a skill in the `productivity` plugin; collective is its own plugin,
+and neither reads the other's state. `/productivity:dream` is
 mentioned throughout this README because the two compose well — a consolidation
 rewrites the memories it improves, which restarts their settle clock, and deletes
 the ones it finds stale, which stops them being assimilated at all. That makes what
 reaches the team better. None of it is required, and collective never looks for
-it: install either one alone and it works.
+it — install `collective` without `productivity`, or `productivity` without
+`collective`, and each works on its own.
 
 ## The gates
 
@@ -127,7 +129,7 @@ appends you to `sharedBy` rather than creating a second file.
 it asserts something that memory does not. Without this the corpus thrashes, and the
 mechanism is worth spelling out: gate 2 rewrites *every* memory for a team audience,
 and that rewrite is a model call, so it is not stable run to run. You adapt a memory,
-your next `/dream` rephrases it, it settles, it assimilates. A teammate adapts your
+your next `/productivity:dream` rephrases it, it settles, it assimilates. A teammate adapts your
 wording, their dream rephrases it, they assimilate. Left alone the two of you take turns
 rewording one file forever, and every pull request adds nothing but a name in
 `sharedBy`.
@@ -258,7 +260,7 @@ missing line.
 ## Not built
 
 - **No consolidation of the shared corpus.** Team memories go stale like any
-  other, and nothing prunes `.collective-memory/`. `/dream` consolidates the copy
+  other, and nothing prunes `.collective-memory/`. `/productivity:dream` consolidates the copy
   you adapted, in your own directory, and never writes back — so a memory you have
   fixed locally is still wrong for everyone who adapts it next. Add a scheduled pass
   over the shared directory when the corpus is big enough to drift.

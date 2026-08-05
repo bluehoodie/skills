@@ -2,7 +2,7 @@
 description: Adapt the collective's memories into your own, choosing what you take
 ---
 
-Nothing is ever injected into your memory directory. This command is the only way the collective's memories get there, and what lands is yours — a normal memory file your next dream can merge, prune or rewrite like any other.
+Nothing is ever injected into your memory directory. This command is the only way the collective's memories get there, and what lands is yours — a normal memory file your next dream can merge, delete or rewrite like any other.
 
 1. List what is new or changed for you:
 
@@ -20,9 +20,9 @@ Nothing is ever injected into your memory directory. This command is the only wa
    python3 "${CLAUDE_PLUGIN_ROOT}/scripts/collective.py" adapt --take <name>
    ```
 
-   It strips the team's `sharedBy` and `promotedAt` — provenance for the shared corpus, meaningless once the memory is yours — and records a `pulledFrom` line naming the team memory it came from. Write that output verbatim into the `memory-dir` from step 1 as `<name>.md`, with default permissions, no `team-` prefix, nothing read-only. A file /dream cannot rewrite is a file that breaks consolidation.
+   It strips the team's `sharedBy` and `promotedAt` — provenance for the shared corpus, meaningless once the memory is yours — and records a `pulledFrom` line naming the team memory it came from. Write that output verbatim into the `memory-dir` from step 1 as `<name>.md`, with default permissions, no `team-` prefix, nothing read-only. A file /productivity:dream cannot rewrite is a file that breaks consolidation.
 
-   Do not hand-edit the frontmatter. `pulledFrom` is what lets a later assimilation know this memory extends the team's rather than duplicating it, and it has to survive /dream merging and renaming the file.
+   Do not hand-edit the frontmatter. `pulledFrom` is what lets a later assimilation know this memory extends the team's rather than duplicating it, and it has to survive dream merging and renaming the file.
 
    If a memory of that name already exists locally, show the user both and let them decide: replace, merge by hand, or skip.
 

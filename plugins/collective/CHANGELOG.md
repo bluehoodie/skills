@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.0.1
+
+- Point references at `/productivity:dream`. Dream moved from its own plugin into
+  `productivity`, so the invocation changed and the two are no longer peer plugins.
+
 ## 1.0.0
 
 First release. Share Claude Code memories across a team through the repo:

@@ -244,15 +244,21 @@ check("a settled memory is a candidate", 1, len(ds.candidates(s.project)))
 s.local("project-a", body="Revised again.")
 check("editing it restarts the clock", 0, len(ds.candidates(s.project)))
 
-# collective and dream are separate plugins. Neither requires the other, and
-# nothing here may consult the other's state: a sandbox with no dream plugin,
-# no state directory and no lock still assimilates.
+# Dream ships as a skill in the productivity plugin; collective is its own plugin.
+# Neither requires the other, and nothing here may consult the other's state: a
+# sandbox with no dream state directory and no lock still assimilates.
 s = Sandbox()
 s.local("project-a")
 s.settle()
-check("assimilation needs no dream plugin installed", 1, len(ds.candidates(s.project)))
-check("and reads nothing the dream plugin owns", False,
-      (s.home / ".claude" / "dream-plugin-state").exists())
+check("assimilation needs no dream state", 1, len(ds.candidates(s.project)))
+
+# Dream's old state directory must be ignored, not merely absent — create it and
+# confirm assimilation neither consults nor disturbs it.
+stale = s.home / ".claude" / "dream-plugin-state" / "some-project"
+stale.mkdir(parents=True)
+(stale / ".consolidate-lock").write_text("")
+check("assimilation ignores dream state that exists", 1, len(ds.candidates(s.project)))
+check("and leaves it untouched", True, (stale / ".consolidate-lock").exists())
 
 
 # ------------------------------------------------------- individual memories
@@ -594,7 +600,7 @@ c.restore()
 #
 # What adapt records, and what assimilate does with it. The classifier is only ever
 # shown corpus names and descriptions — never bodies — so a pulled memory that
-# /dream has since merged and renamed has nothing left to match on, and the same
+# /productivity:dream has since merged and renamed has nothing left to match on, and the same
 # fact lands in the shared corpus a second time. Lineage makes that a fact
 # instead of a guess.
 
