@@ -71,16 +71,15 @@ has "list marks it installed" "[installed]" "$(bh list)"
 bh install productivity >/dev/null
 present "install <plugin> lands dream-status" "$HOME/.claude/commands/dream-status.md"
 present "install <plugin> lands dream-restore" "$HOME/.claude/commands/dream-restore.md"
-present "install <plugin> lands context-tune" "$HOME/.claude/skills/context-tune/SKILL.md"
 
 # Reinstalling something bluehoodie owns is an upgrade, not an error.
-check "reinstall succeeds" "0" "$(bh install productivity/dream >/dev/null 2>&1; echo $?)"
+check "reinstall succeeds" "0" "$(bh install productivity >/dev/null 2>&1; echo $?)"
 # dream/SKILL.md carries ${CLAUDE_PLUGIN_ROOT} and is deliberately rewritten on
 # install, so it is not byte-identical to source (see Task 3 below) — assert
-# byte-equality on context-tune instead, a same-plugin skill with no token.
+# byte-equality on dream-restore instead, a same-plugin entry with no token.
 check "reinstall lands the shipped content" \
-  "$(cat "$REPO/plugins/productivity/skills/context-tune/SKILL.md")" \
-  "$(cat "$HOME/.claude/skills/context-tune/SKILL.md")"
+  "$(cat "$REPO/plugins/productivity/commands/dream-restore.md")" \
+  "$(cat "$HOME/.claude/commands/dream-restore.md")"
 
 # A path bluehoodie does not own is never clobbered.
 mkdir -p "$HOME/.claude/skills/adversarial-review"
@@ -205,13 +204,13 @@ bh install productivity >/dev/null
 out=$(bh remove productivity/dream)
 absent "remove deletes the skill" "$HOME/.claude/skills/dream"
 has "remove prints the path it deleted" "$HOME/.claude/skills/dream" "$out"
-present "remove leaves the plugin's other skills alone" "$HOME/.claude/skills/context-tune/SKILL.md"
+present "remove leaves the plugin's other entries alone" "$HOME/.claude/commands/dream-restore.md"
 present "the support dir survives while siblings remain" \
   "$HOME/.claude/bluehoodie/productivity/scripts/survey.sh"
 
 bh remove productivity >/dev/null
 absent "remove <plugin> takes the commands" "$HOME/.claude/commands/dream-status.md"
-absent "remove <plugin> takes the last skill" "$HOME/.claude/skills/context-tune"
+absent "remove <plugin> takes the last entry" "$HOME/.claude/commands/dream-restore.md"
 absent "the support dir goes with the last entry" "$HOME/.claude/bluehoodie/productivity"
 check "the manifest is empty afterwards" "0" \
   "$(node -p "Object.keys(require('$HOME/.claude/bluehoodie/installed.json').entries).length")"

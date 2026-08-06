@@ -125,9 +125,6 @@ happen, and the next one covers the wider window.
 
 - [dream](./skills/dream/SKILL.md) — machine-wide memory consolidation, described
   above.
-- [context-tune](./skills/context-tune/SKILL.md) — audit and rightsize a project's
-  CLAUDE.md files, memories, and skills against the Claude 5 context-engineering
-  principles.
 
 ## Commands
 

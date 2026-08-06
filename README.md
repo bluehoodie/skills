@@ -62,9 +62,6 @@ Skills and commands for code work. `/plugin install engineering@bluehoodie`
 
 Skills and commands for non-code workflow. `/plugin install productivity@bluehoodie`
 
-- [context-tune](./plugins/productivity/skills/context-tune/SKILL.md) — audit and rightsize
-  a project's CLAUDE.md files, memories, and skills against the Claude 5
-  context-engineering principles.
 - [dream](./plugins/productivity/skills/dream/SKILL.md) — machine-wide memory
   consolidation. Tidies every project's memories in one pass and commits the result so
   you can undo it. Usually run nightly as a Claude Desktop routine —

@@ -1,7 +1,7 @@
 {
   "name": "productivity",
   "description": "Colin Dickson's Claude Code skills and commands for non-code workflow.",
-  "version": "0.2.4",
+  "version": "0.2.5",
   "license": "MIT",
   "author": {
     "name": "Colin Dickson",
