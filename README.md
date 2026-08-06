@@ -57,6 +57,9 @@ Skills and commands for code work. `/plugin install engineering@bluehoodie`
 - [adversarial-review](./plugins/engineering/skills/adversarial-review/SKILL.md) —
   two-agent adversarial code review: the Critic attacks the code, the Author defends it,
   and the debate surfaces issues a single-pass review misses.
+- [ship-pr](./plugins/engineering/skills/ship-pr/SKILL.md) — take the current branch from
+  local commits to merged: open the PR, watch CI, fix or rerun what breaks, and merge only
+  once CI is green **and** a code review has passed. Never arms auto-merge.
 
 ### [productivity](./plugins/productivity)
 
