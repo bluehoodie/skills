@@ -29,11 +29,19 @@ There is also a small CLI that copies individual skills and commands straight in
 `~/.claude/`, for setups where a marketplace isn't the right fit:
 
 ```bash
-npx bluehoodie install productivity/dream   # one skill or command
-npx bluehoodie install productivity         # everything in a plugin
-npx bluehoodie remove productivity/dream
-npx bluehoodie list                         # what's available, what's installed
+npm install -g bluehoodie
 ```
+
+That puts a `bluehoodie` command on your `PATH`:
+
+```bash
+bluehoodie install productivity/dream   # one skill or command
+bluehoodie install productivity         # everything in a plugin
+bluehoodie remove productivity/dream
+bluehoodie list                         # what's available, what's installed
+```
+
+Or skip the install and run it directly: `npx bluehoodie list`.
 
 What you get are ordinary files you own and can edit, not a managed bundle — so nothing
 auto-updates, and you re-run `install` to pick up a new version. Use one route or the
