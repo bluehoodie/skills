@@ -69,6 +69,10 @@ Skills and commands for non-code workflow. `/plugin install productivity@bluehoo
   consolidation. Tidies every project's memories in one pass and commits the result so
   you can undo it. Usually run nightly as a Claude Desktop routine —
   [setup is three steps](./plugins/productivity#set-up-nightly-memory-consolidation).
+- [cleanup-unused-skills](./plugins/productivity/skills/cleanup-unused-skills/SKILL.md) —
+  find globally installed skills, commands and plugins that no session has invoked over a
+  window, then remove the ones you pick. Every removal is reversible, and cloud-synced
+  skills are reported rather than deleted.
 - [dream-status](./plugins/productivity/commands/dream-status.md) — which projects need
   a dream, and the state of the memory stores.
 - [dream-restore](./plugins/productivity/commands/dream-restore.md) — undo a dream by

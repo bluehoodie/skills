@@ -121,10 +121,49 @@ happen, and the next one covers the wider window.
 
 ---
 
+# Cleaning up unused skills
+
+```
+/productivity:cleanup-unused-skills
+/productivity:cleanup-unused-skills 90 days
+```
+
+Every skill installed globally costs context in **every** session — its
+description is loaded whether or not it ever fires. This surveys what is
+installed against what your sessions actually invoked over a window (30 days by
+default; pass a number of days or a phrase like "the last three months"), shows
+you what has gone unused, and offers to remove all of it, some of it, or none.
+
+It reads invocations out of your session transcripts structurally, not by
+grepping for names — every transcript already contains a listing of every
+installed skill, so a grep would report all of them as used.
+
+Three things it will not do:
+
+- **Judge something installed inside the window.** A skill installed on Tuesday
+  and unused by Friday tells you nothing; those are listed separately and never
+  offered for removal.
+- **Delete a cloud-synced skill.** Anything under `~/.claude/skills/synced/`
+  comes down from your account and syncs back; the local copy would return.
+  They are reported, with a note to remove them where you added them.
+- **Uninstall a plugin that is partly used.** Uninstalling takes every skill and
+  command the plugin ships, so a plugin is only offered when all of its
+  components are unused.
+
+Removals are reversible, each by its own route: `claude plugin install` for a
+plugin, `npx bluehoodie install` for anything this CLI put there, and for loose
+files in `~/.claude`, a move into `~/.claude/cleanup-attic/<date>/` rather than
+a delete — moving it back restores it.
+
+Nothing is removed that you did not pick by name.
+
 ## Skills
 
 - [dream](./skills/dream/SKILL.md) — machine-wide memory consolidation, described
   above.
+- [cleanup-unused-skills](./skills/cleanup-unused-skills/SKILL.md) — find globally
+  installed skills, commands and plugins no session has invoked over a window, and
+  remove the ones you pick. Described above.
 
 ## Commands
 
