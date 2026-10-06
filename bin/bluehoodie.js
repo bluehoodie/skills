@@ -4,6 +4,7 @@
 const fs = require('fs')
 const os = require('os')
 const path = require('path')
+const { spawn, spawnSync } = require('child_process')
 
 const ROOT = path.join(__dirname, '..')
 const SOURCE = path.join(ROOT, 'plugins')
@@ -12,12 +13,18 @@ const PKG = require(path.join(ROOT, 'package.json'))
 const CLAUDE = path.join(os.homedir(), '.claude')
 const SUPPORT = path.join(CLAUDE, 'bluehoodie')
 const MANIFEST = path.join(SUPPORT, 'installed.json')
+const CHECK = path.join(SUPPORT, 'update-check.json')
+const SOURCE_SPEC = process.env.BLUEHOODIE_SOURCE || 'github:bluehoodie/skills'
+const DAY = 24 * 60 * 60 * 1000
+// npm is npm.cmd on Windows, which Node only spawns through a shell.
+const WIN = process.platform === 'win32'
 
 const USAGE = `bluehoodie ${PKG.version}
 
   bluehoodie install <plugin>[/<name>]   install a plugin, or one skill or command
   bluehoodie remove  <plugin>[/<name>]   remove what install added
   bluehoodie list                        what is available, and what is installed
+  bluehoodie update                      update the CLI, then refresh what is installed
 
 Installs to ${CLAUDE}. Pass --force to overwrite files bluehoodie did not install.`
 
@@ -71,12 +78,13 @@ function writeManifest (m) {
   fs.writeFileSync(MANIFEST, JSON.stringify(m, null, 2) + '\n')
 }
 
-function resolve (spec) {
+// type disambiguates a skill and a command sharing a name; without it skills win.
+function resolve (spec, type) {
   const [plugin, name] = String(spec).split('/')
   if (!plugins().includes(plugin)) die(`unknown plugin: ${plugin}`)
   const items = contents(plugin)
   if (!name) return { plugin, items }
-  const item = items.find(i => i.name === name)
+  const item = items.find(i => i.name === name && (!type || i.type === type))
   if (!item) die(`unknown skill or command: ${spec}`)
   return { plugin, items: [item] }
 }
@@ -143,8 +151,8 @@ function rewrite (target, pluginRoot) {
   }
 }
 
-function install (spec, force) {
-  const { plugin, items } = resolve(spec)
+function install (spec, force, type) {
+  const { plugin, items } = resolve(spec, type)
   const m = readManifest()
   const version = pluginVersion(plugin)
 
@@ -226,9 +234,90 @@ function remove (spec) {
   writeManifest(m)
 }
 
+// The running process has the old code loaded, so the self-update step hands
+// the refresh to the freshly installed copy via --no-self.
+function update (noSelf) {
+  if (!noSelf) {
+    if (spawnSync('npm', ['install', '-g', SOURCE_SPEC], { stdio: 'inherit', shell: WIN }).status !== 0) {
+      // Not `sudo bluehoodie update`: sudo may reset HOME and refresh root's ~/.claude.
+      die(`npm install -g ${SOURCE_SPEC} failed.\n  Run it yourself (with sudo if your npm prefix needs it), then: bluehoodie update --no-self`)
+    }
+    const g = spawnSync('npm', ['root', '-g'], { encoding: 'utf8', shell: WIN })
+    const bin = path.join(String(g.stdout).trim(), 'bluehoodie', 'bin', 'bluehoodie.js')
+    if (g.status !== 0 || !fs.existsSync(bin)) die(`updated CLI not found at ${bin}`)
+    process.exit(spawnSync(process.execPath, [bin, 'update', '--no-self'], { stdio: 'inherit' }).status ?? 1)
+  }
+
+  const m = readManifest()
+  for (const [k, e] of Object.entries(m.entries)) {
+    if (!e || typeof e !== 'object') continue
+    const name = k.slice(k.indexOf(':') + 1)
+    const spec = `${e.plugin}/${name}`
+    // Not through resolve(): it dies on an unknown plugin, and a dropped
+    // item must be reported, never fatal and never auto-deleted.
+    const shipped = plugins().includes(e.plugin) && contents(e.plugin).some(i => key(i) === k)
+    if (!shipped) {
+      console.log(`${spec} is no longer shipped — run: bluehoodie remove ${spec}`)
+    } else if (e.version !== pluginVersion(e.plugin)) {
+      install(spec, false, k.slice(0, k.indexOf(':')))
+      console.log(`updated ${spec} ${e.version} -> ${pluginVersion(e.plugin)}`)
+    } else {
+      console.log(`current ${spec}`)
+    }
+  }
+  for (const p of plugins()) {
+    for (const it of contents(p)) {
+      if (m.entries[key(it)]?.plugin !== p) console.log(`new: ${p}/${it.name} (${it.type})`)
+    }
+  }
+}
+
+// ponytail: numeric major.minor.patch only, no prerelease tags. Upgrade to
+// the `semver` package if versions ever carry -rc suffixes.
+function newer (a, b) {
+  const x = String(a).split('.').map(Number)
+  const y = String(b).split('.').map(Number)
+  for (let i = 0; i < 3; i++) if ((x[i] || 0) !== (y[i] || 0)) return (x[i] || 0) > (y[i] || 0)
+  return false
+}
+
+function readCheck () {
+  try { return JSON.parse(fs.readFileSync(CHECK, 'utf8')) || {} } catch { return {} }
+}
+
+// update-notifier pattern: print what the last background check found and
+// refresh it out of band, so the network never delays the command being run.
+function notify () {
+  const c = readCheck()
+  if (c.latest && newer(c.latest, PKG.version)) {
+    process.stderr.write(`bluehoodie ${c.latest} is available — run: bluehoodie update\n`)
+  }
+  if (!(Date.now() - c.checked < DAY)) {
+    spawn(process.execPath, [__filename, '--update-check-worker'], { detached: true, stdio: 'ignore' }).unref()
+  }
+}
+
+// Failures still stamp `checked`, so a dead network costs one attempt a day.
+async function checkWorker () {
+  let latest = readCheck().latest
+  try {
+    const url = process.env.BLUEHOODIE_UPDATE_URL || 'https://raw.githubusercontent.com/bluehoodie/skills/main/package.json'
+    // fetch() rejects file: URLs, so a plain path is read directly (tests).
+    const text = /^https?:/.test(url)
+      ? await (await fetch(url, { signal: AbortSignal.timeout(5000) })).text()
+      : fs.readFileSync(url, 'utf8')
+    latest = JSON.parse(text).version || latest
+  } catch {}
+  fs.mkdirSync(SUPPORT, { recursive: true })
+  fs.writeFileSync(CHECK, JSON.stringify({ checked: Date.now(), latest }) + '\n')
+}
+
 function main (argv) {
+  if (argv[0] === '--update-check-worker') return checkWorker().catch(() => {})
   const force = argv.includes('--force')
   const [cmd, spec] = argv.filter(a => !a.startsWith('--'))
+  if (cmd !== 'update' && !process.env.BLUEHOODIE_NO_UPDATE_CHECK && !process.env.CI) notify()
+  if (cmd === 'update') return update(argv.includes('--no-self'))
   if (cmd === 'list') return list()
   if (cmd === 'install' || cmd === 'remove') {
     if (!spec) die(`${cmd} needs a target, e.g. ${cmd} productivity/dream`)

@@ -10,6 +10,8 @@ trap 'rm -rf "$FIX"' EXIT
 
 export HOME="$FIX/home"
 mkdir -p "$HOME"
+# The suite must never reach the network; update-check tests unset this locally.
+export BLUEHOODIE_NO_UPDATE_CHECK=1
 
 bh() { node "$CLI" "$@"; }
 
@@ -310,6 +312,99 @@ check "a crafted manifest entry does not exit 0" "1" "$escstatus"
 has "the refusal names the containment rule" "refusing to remove" "$escout"
 check "the outside victim survives the traversal attempt" "$victimbefore" "$(cat "$VICTIM/secret.txt")"
 rm -rf "$ESCROOT" "$VICTIM"
+
+# --- update: background check notice, worker, refresh, self-update
+rm -rf "$HOME/.claude"
+CACHE="$HOME/.claude/bluehoodie/update-check.json"
+mkdir -p "$HOME/.claude/bluehoodie"
+now=$(node -p "Date.now()")
+VER=$(node -p "require('$REPO/package.json').version")
+echo '{"version":"98.0.0"}' > "$FIX/remote-package.json"
+# Default source is a local file so no worker spawned here can reach the network.
+chk() { env -u BLUEHOODIE_NO_UPDATE_CHECK BLUEHOODIE_UPDATE_URL="${BLUEHOODIE_UPDATE_URL:-$FIX/remote-package.json}" node "$CLI" "$@"; }
+
+echo "{\"checked\":$now,\"latest\":\"99.0.0\"}" > "$CACHE"
+has "a newer cached version prints a notice" "99.0.0 is available" "$(chk list 2>&1 >/dev/null)"
+has "the notice says how to update" "run: bluehoodie update" "$(chk list 2>&1 >/dev/null)"
+check "the opt-out silences the notice" "" "$(bh list 2>&1 >/dev/null)"
+check "CI silences the notice" "" "$(CI=1 chk list 2>&1 >/dev/null)"
+check "update itself never prints the notice" "" "$(chk update --no-self 2>&1 >/dev/null)"
+echo "{\"checked\":$now,\"latest\":\"$VER\"}" > "$CACHE"
+check "no notice when already current" "" "$(chk list 2>&1 >/dev/null)"
+echo 'garbage' > "$CACHE"
+check "a garbage cache is ignored" "0" "$(chk list >/dev/null 2>&1; echo $?)"
+for _ in $(seq 25); do grep -q checked "$CACHE" && break; sleep 0.2; done # let its worker finish
+
+# Worker: a run with no cache spawns a detached worker that fills the cache.
+rm -f "$CACHE"
+chk list >/dev/null 2>&1
+for _ in $(seq 25); do grep -q checked "$CACHE" 2>/dev/null && break; sleep 0.2; done
+present "the background worker writes the cache" "$CACHE"
+has "the cache records the fetched version" "98.0.0" "$(cat "$CACHE" 2>/dev/null)"
+
+# A dead source still stamps `checked`, so a dead network is not retried every run.
+rm -f "$CACHE"
+BLUEHOODIE_UPDATE_URL="$FIX/nonexistent.json" chk list >/dev/null 2>&1
+for _ in $(seq 25); do grep -q checked "$CACHE" 2>/dev/null && break; sleep 0.2; done
+has "a failed fetch still records the check time" '"checked"' "$(cat "$CACHE" 2>/dev/null)"
+
+# Refresh: stale installed item is reinstalled, orphan is reported not deleted.
+rm -rf "$HOME/.claude"
+bh install productivity/dream >/dev/null
+PVER=$(node -p "require('$REPO/plugins/productivity/.claude-plugin/plugin.json').version")
+node -e '
+const fs = require("fs")
+const f = process.argv[1]
+const m = JSON.parse(fs.readFileSync(f, "utf8"))
+m.entries["skill:dream"].version = "0.0.1"
+m.entries["skill:gone-skill"] = { type: "skill", plugin: "productivity", version: "0.0.1" }
+fs.writeFileSync(f, JSON.stringify(m))
+' "$HOME/.claude/bluehoodie/installed.json"
+out=$(bh update --no-self 2>&1); status=$?
+check "update --no-self exits clean despite an orphan" "0" "$status"
+has "a stale item is reported updated" "updated productivity/dream 0.0.1 -> $PVER" "$out"
+check "the manifest records the shipped version" "$PVER" \
+  "$(node -p "require('$HOME/.claude/bluehoodie/installed.json').entries['skill:dream'].version")"
+has "an item no longer shipped is flagged" "gone-skill is no longer shipped" "$out"
+has "the flag names the remove command" "bluehoodie remove productivity/gone-skill" "$out"
+has "not-installed shipped items are listed as new" "new: productivity/dream-status (command)" "$out"
+absent "new items are listed, not installed" "$HOME/.claude/commands/dream-status.md"
+out=$(bh update --no-self 2>&1)
+has "an up-to-date item is reported current" "current productivity/dream" "$out"
+
+# A skill and a command may share a name (that's why the manifest keys on type);
+# update must refresh the stale one, not whichever resolve() finds first.
+DUP=$(mktemp -d)
+mkdir -p "$DUP/bin" "$DUP/plugins/dup/.claude-plugin" "$DUP/plugins/dup/skills/x" "$DUP/plugins/dup/commands"
+cp "$CLI" "$DUP/bin/bluehoodie.js"
+echo '{"version":"0.0.1"}' > "$DUP/package.json"
+echo '{"name":"dup","version":"2.0.0"}' > "$DUP/plugins/dup/.claude-plugin/plugin.json"
+echo skill > "$DUP/plugins/dup/skills/x/SKILL.md"
+echo command > "$DUP/plugins/dup/commands/x.md"
+rm -rf "$HOME/.claude"
+node "$DUP/bin/bluehoodie.js" install dup >/dev/null
+node -e '
+const fs = require("fs")
+const f = process.argv[1]
+const m = JSON.parse(fs.readFileSync(f, "utf8"))
+m.entries["command:x"].version = "1.0.0"
+fs.writeFileSync(f, JSON.stringify(m))
+' "$HOME/.claude/bluehoodie/installed.json"
+node "$DUP/bin/bluehoodie.js" update --no-self >/dev/null 2>&1
+check "update refreshes the stale command, not the same-named skill" "2.0.0" \
+  "$(node -p "require('$HOME/.claude/bluehoodie/installed.json').entries['command:x'].version")"
+rm -rf "$DUP" "$HOME/.claude"
+bh install productivity/dream >/dev/null
+
+# End-to-end: the real packed tarball, not a symlink to the working tree
+# (npm links a local dir on global install, which would prove nothing about `files`).
+TARBALL="$FIX/$(cd "$REPO" && npm pack --pack-destination "$FIX" --silent 2>/dev/null | tail -1)"
+out=$(npm_config_prefix="$FIX/npm" BLUEHOODIE_SOURCE="$TARBALL" bh update 2>&1); status=$?
+check "self-update exits clean" "0" "$status"
+present "self-update installs the CLI" "$FIX/npm/lib/node_modules/bluehoodie/bin/bluehoodie.js"
+present "the packed CLI carries the plugins tree" \
+  "$FIX/npm/lib/node_modules/bluehoodie/plugins/productivity/skills/dream/SKILL.md"
+has "the new copy runs the refresh" "current productivity/dream" "$out"
 
 # --- packaging: the tarball must actually carry the plugins tree. The rest of
 # this suite runs the CLI from the repo, so it passes whether or not `files`
