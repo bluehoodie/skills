@@ -70,6 +70,9 @@ Skills and commands for non-code workflow. `/plugin install productivity@bluehoo
   consolidation. Tidies every project's memories in one pass and commits the result so
   you can undo it. Usually run nightly as a Claude Desktop routine —
   [setup is three steps](./plugins/productivity#set-up-nightly-memory-consolidation).
+- [research](./plugins/productivity/skills/research/SKILL.md) — runs automatically
+  when you ask Claude to research a topic or check a claim. It traces claims to
+  original sources, grades the verdicts, and keeps findings apart from judgment.
 - [dream-status](./plugins/productivity/commands/dream-status.md) — which projects need
   a dream, and the state of the memory stores.
 - [dream-restore](./plugins/productivity/commands/dream-restore.md) — undo a dream by

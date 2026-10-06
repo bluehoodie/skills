@@ -125,6 +125,10 @@ happen, and the next one covers the wider window.
 
 - [dream](./skills/dream/SKILL.md) — machine-wide memory consolidation, described
   above.
+- [research](./skills/research/SKILL.md) — runs automatically when you ask Claude to
+  research a topic or check a claim. It traces load-bearing claims to original
+  sources, counts articles that repeat one study as one source, grades each verdict,
+  and keeps what was measured apart from what anyone concludes from it.
 
 ## Commands
 
