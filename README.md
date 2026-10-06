@@ -39,12 +39,18 @@ bluehoodie install productivity/dream   # one skill or command
 bluehoodie install productivity         # everything in a plugin
 bluehoodie remove productivity/dream
 bluehoodie list                         # what's available, what's installed
+bluehoodie update                       # update the CLI, refresh what you installed
 ```
 
 Or skip the install and run it directly: `npx bluehoodie list`.
 
+`update` pulls the latest CLI from this repo, reinstalls any installed skill or command
+whose version changed, and lists new ones you haven't installed. The CLI also checks GitHub
+for a newer version at most once a day, in the background, and prints a notice; set
+`BLUEHOODIE_NO_UPDATE_CHECK=1` to turn that off.
+
 What you get are ordinary files you own and can edit, not a managed bundle — so nothing
-auto-updates, and you re-run `install` to pick up a new version. Use one route or the
+changes until you run `update` (or `install`), and a reinstall overwrites your edits. Use one route or the
 other, not both: if a plugin is already installed from the marketplace, uninstall it
 before installing the same thing this way.
 

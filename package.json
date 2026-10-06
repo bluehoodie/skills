@@ -1,6 +1,6 @@
 {
   "name": "bluehoodie",
-  "version": "0.1.6",
+  "version": "0.1.7",
   "description": "Install Colin Dickson's Claude Code skills and commands without a plugin marketplace.",
   "bin": {
     "bluehoodie": "bin/bluehoodie.js"
@@ -27,8 +27,5 @@
     "claude-code",
     "skills",
     "plugins"
-  ],
-  "dependencies": {
-    "bluehoodie": "^0.1.0"
-  }
+  ]
 }
